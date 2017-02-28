@@ -1,3 +1,5 @@
+limit=15  #inferieur ou egal
+
 def updateTable (table, couple, emetteur):
     dest, cout=couple
     #print("Couple a traiter :")
@@ -9,14 +11,23 @@ def updateTable (table, couple, emetteur):
             if cout+1<i_cout:
                 table[i]=i_reseau, cout+1, emetteur
             elif emetteur==i_emetteur:
-                table[i]=i_reseau, cout+1, emetteur
+                table[i]=i_reseau, cout+1, emetteur            
             trouve=1
             break
     if trouve == 0 :
         table.append((dest, cout+1, emetteur))
+    j=0
+    while j<len(table):
+        j_reseau, j_cout, j_emetteur=table[j]
+        if j_cout>limit:
+            table.pop(j)
+        else :
+            j+=1
     #print(table)
 
 def printTablesDeRoutage(megaListe):
+    print()
+    print("--------------------------------------------------------------------")
     for i in range(len(megaListe)):
         print()
         old_table, new_table, vois=megaListe[i]
@@ -26,7 +37,9 @@ def printTablesDeRoutage(megaListe):
         else:
             print("Sa (old)table est : ", old_table)
             print("Ses voisins sont : ",  vois)
-        
+    print()
+    print("--------------------------------------------------------------------")
+    print()
 
 def broadcast(voisins, table_old, self, megaListe):
     for vois in voisins:
@@ -62,13 +75,13 @@ def mettreAJour(megaListe, nbr):
     
 def ajoutRouteur(megaListe, voisins):
     n=len(megaListe)
-    megaListe.append(([n, 0, n], [n, 0, n], voisins))
+    megaListe.append(([(n, 0, n)], [(n, 0, n)], voisins))
     for i in voisins:
         old_table, new_table, vois = megaListe[i]
         vois.append(n)
         megaListe[i]=old_table, new_table, vois
 
-def supprimeRouteur(megaListe, n):
+def desactiveRouteur(megaListe, n):
     megaListe[n]=([], [], [])
     for i in range(len(megaListe)) :
         if i!=n:
@@ -77,6 +90,14 @@ def supprimeRouteur(megaListe, n):
                 if vois[j]==n:
                     vois.pop(j)
                     break
+            j=0
+            while j<len(old_table):
+                j_dest, j_cout, j_emetteur=old_table[j]
+                if j_emetteur==n or j_dest==n:
+                    old_table.pop(j)
+                else :
+                    j+=1
+            new_table=copieListe(old_table)
             megaListe[i]=old_table, new_table, vois
             
 def activeRouteur(megaListe, n, voisins):

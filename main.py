@@ -1,5 +1,4 @@
-#Fichier principal
-#import networkx as nx
+
 from fonctions import *
 
 """table=[("a", 0, "A"), ("b", 2, "C"), ("c", 6, "A"), ("d", 8, "B")]"""
@@ -23,7 +22,7 @@ megaListe2= [ \
 ]
 
 
-
+"""
 miseAJourUnitaire(megaListe1)
 print("")
 print("")
@@ -41,14 +40,14 @@ miseAJourUnitaire(megaListe2)
 newTableVersOldTable(megaListe2)
 
 printTablesDeRoutage(megaListe2)
-
+"""
 
 
 
 """printTablesDeRoutage(megaListe1)
 ajoutRouteur(megaListe1, [0, 1])
 printTablesDeRoutage(megaListe1)
-supprimeRouteur(megaListe1, 0)
+desactiveRouteur(megaListe1, 0)
 printTablesDeRoutage(megaListe1)
 activeRouteur(megaListe1, 0, [1])
 printTablesDeRoutage(megaListe1)"""
@@ -74,9 +73,25 @@ print("-------")
 """
 
 
+mettreAJour(megaListe2, nbrDeToursNecessaire(megaListe2))
+printTablesDeRoutage(megaListe2)
 
-#print(nbrDeToursNecessaire(megaListe1))
-#print(nbrDeToursNecessaire(megaListe2))
+ajoutRouteur(megaListe2, [3])
+print("Nombre de tours necessaires : ", nbrDeToursNecessaire(megaListe2))
 
-"""ajoutRouteur(megaListe2, [3])
-print(nbrDeToursNecessaire(megaListe2))"""
+ajoutRouteur(megaListe2, [0, 4])
+nb=nbrDeToursNecessaire(megaListe2)
+print("Nombre de tours necessaires : ",  nb)
+
+mettreAJour(megaListe2, nb)
+printTablesDeRoutage(megaListe2)
+print("******************************************************")
+
+desactiveRouteur(megaListe2, 3)
+print("Table après desactivation : ")
+printTablesDeRoutage(megaListe2)
+
+nb=nbrDeToursNecessaire(megaListe2)
+print("Nombre de tours necessaires : ",  nb)
+mettreAJour(megaListe2, nb)
+printTablesDeRoutage(megaListe2)

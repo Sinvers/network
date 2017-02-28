@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Project SYSTEM "Project-5.1.dtd">
 <!-- eric project file for project reseaux -->
-<!-- Saved: 2017-02-26, 21:19:34 -->
+<!-- Saved: 2017-02-28, 13:57:54 -->
 <!-- Copyright (C) 2017 ,  -->
 <Project version="5.1">
   <Language>en_US</Language>
@@ -15,6 +15,7 @@
   <Sources>
     <Source>__init__.py</Source>
     <Source>backup.py</Source>
+    <Source>fonctions.py</Source>
     <Source>main.py</Source>
   </Sources>
   <Forms/>
