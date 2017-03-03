@@ -1,3 +1,4 @@
 *.timings
 *.profile
 __pycache__/
+testsInutiles.py

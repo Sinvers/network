@@ -95,3 +95,7 @@ nb=nbrDeToursNecessaire(megaListe2)
 print("Nombre de tours necessaires : ",  nb)
 mettreAJour(megaListe2, nb)
 printTablesDeRoutage(megaListe2)
+
+
+liste=generateurDeReseau(10)        #Attention 1000 ça bug
+printTablesDeRoutage(liste)

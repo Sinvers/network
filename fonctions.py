@@ -1,4 +1,4 @@
-limit=15  #inferieur ou egal
+limit=15  #inferieur ou egal // Limite pour RIP
 
 def updateTable (table, couple, emetteur):
     dest, cout=couple
@@ -130,3 +130,29 @@ def nbrDeToursNecessaire(megaListe):
         megaListeNew=copieMegaListe(megaListe)
         mettreAJour(megaListeNew, 1)
     return i
+
+import random as rd
+
+def generateurDeReseau(nombre):
+    megaListe = []
+    for i in range(nombre):
+        n=rd.randint(1, nombre-1)             #1 puisqu'on impose qu'il ait au moins un voisin // C'est le nombre de voisins pour le routeur i
+        vois=[]
+        choix=[]                                       #Va etre les possibilites de voisins
+        for j in range (nombre):
+            if j!=i :
+                choix.append(j)
+        print(choix)
+        for j in range(n):
+            print("len : ",  len(choix))
+            nbAlea=rd.randrange(0, len(choix))     #0 puiqu'on veut avoir aussi le 0
+            print(nbAlea)
+            vois.append(choix[nbAlea])
+            choix.pop(nbAlea)
+        megaListe.append([[(i,0, i)], [(i,0, i)],  vois])
+    return megaListe
+
+
+
+
+
