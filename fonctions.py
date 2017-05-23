@@ -139,7 +139,7 @@ def nbrDeToursNecessaire(mega_Liste):                   #Retourne le nombre de t
 
 import random as rd
 
-def generateurDeReseau(nombre):                 #Génère aléatoirement un réseau constitué de nombre routeurs, génère en fait une mega_Liste.
+def generateurDeReseauERREUR(nombre):                 #Génère aléatoirement un réseau constitué de nombre routeurs, génère en fait une mega_Liste.
     mega_Liste = []
     for i in range(nombre):
         n=rd.randint(1, nombre-1)             #1 puisqu'on impose qu'il ait au moins un voisin // C'est le nombre de voisins pour le routeur i
@@ -157,8 +157,66 @@ def generateurDeReseau(nombre):                 #Génère aléatoirement un rés
             choix.pop(nbAlea)
         mega_Liste.append([[(i,0, i)], [(i,0, i)],  vois])
     return mega_Liste
+    
+def generateurDeReseau(nombre):
+    mega_Liste = []
+    for j in range(nombre):
+        choix = []
+        for i in range(nombre):
+            if j != i:
+                choix.append(i)
+        nb_Vois=rd.randint(0, nombre - 1)
+        vois = rd.sample(choix, nb_Vois)
+        mega_Liste.append([[(j,0, j)], [(j,0, j)],  vois])
+    for j in range(nombre) :
+        old_Table, new_Table, vois = mega_Liste[j]
+        for u in vois :
+            u_Old_Table, u_New_Table, u_Vois = mega_Liste[u]
+            if not (j in u_Vois) :
+                u_Vois.append(j)
+            mega_Liste[u] = u_Old_Table, u_New_Table, u_Vois
+    return mega_Liste
+
+infini = float("inf")
+
+def tableTotale(mega_Liste):                    #Retourne une matrice contenant 1 si les routeurs sont directement connectés, ou -1 si ils ne le sont pas directement. POUR OSPF.
+    mat=[]
+    n = len(mega_Liste)
+    for i in range(n):
+        mat.append([])
+        for j in range(n):
+            mat[i].append(infini)
+    for i in range(n):
+        mat[i][i]=0
+    for i in range(n):
+        i_old_table, i_new_table, i_vois = mega_Liste[i]
+        for j in i_vois:
+            mat[i][j]=1
+    return mat
 
 
-
-
-
+def dijkstra (table_Totale, indice_Routeur):
+    d=[]
+    for i in range(len(table_Totale[indice_Routeur])):
+        d.append(table_Totale[indice_Routeur][i])
+    #print("d = ", d)
+    n = len(table_Totale)
+    S = [indice_Routeur]
+    S_Compl = []
+    for i in range(n):
+        if i!=indice_Routeur :
+            S_Compl.append(i)
+    while len(S_Compl)!=0 :
+        min=S_Compl[0]
+        i=0
+        for j in range(len(S_Compl)) :
+            if d[S_Compl[j]]<d[min] :
+                min = S_Compl[j]
+                i = j
+        S.append(S_Compl[i])
+        S_Compl.pop(j)
+        for i in range(len(S_Compl)):
+            if d[S_Compl[i]]>d[min]+table_Totale[min][S_Compl[i]]:
+                d[S_Compl[i]]=d[min]+table_Totale[min][S_Compl[i]]
+        #print(d)
+    return d

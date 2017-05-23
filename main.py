@@ -8,6 +8,7 @@ from fonctions import *
 updateTable(table, ("c", 4), "B")
 """
 
+"""
 megaListe1= [ \
 ([(0, 0, 0)], [(0, 0, 0)], [1]), \
 ([(1, 0, 1)], [(1, 0, 1)], [0]) \
@@ -20,7 +21,7 @@ megaListe2= [ \
 ([(3, 0, 3)], [(3, 0, 3)], [1, 2, 4]), \
 ([(4, 0, 4)], [(4, 0, 4)], [3]) \
 ]
-
+"""
 
 """
 miseAJourUnitaire(megaListe1)
@@ -72,7 +73,7 @@ printTablesDeRoutage(megaListe2)
 print("-------")
 """
 
-
+"""
 mettreAJour(megaListe2, nbrDeToursNecessaire(megaListe2))
 printTablesDeRoutage(megaListe2)
 
@@ -99,3 +100,11 @@ printTablesDeRoutage(megaListe2)
 
 liste=generateurDeReseau(10)        #Attention 1000 ça bug
 printTablesDeRoutage(liste)
+"""
+
+megaListe3 = generateurDeReseau(10)
+printTablesDeRoutage(megaListe3)
+tab_Tot = tableTotale(megaListe3)
+#print(tab_Tot)
+print(dijkstra(tab_Tot, 0))
+print("Fini")
