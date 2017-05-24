@@ -158,7 +158,7 @@ def generateurDeReseauERREUR(nombre):                 #Génère aléatoirement u
         mega_Liste.append([[(i,0, i)], [(i,0, i)],  vois])
     return mega_Liste
     
-def generateurDeReseau(nombre):
+def generateurDeReseau(nombre):                 #Correction de la fonction précédente qui créait un graphe orienté (si A est un voisin de B, B n'était pas forcément un voisin de A). Celle-ci renvoie bien un graphe non orienté.
     mega_Liste = []
     for j in range(nombre):
         choix = []
@@ -196,27 +196,34 @@ def tableTotale(mega_Liste):                    #Retourne une matrice contenant 
 
 
 def dijkstra (table_Totale, indice_Routeur):
-    d=[]
+    
+    d=[]                    #C'est la liste qui contiendra les distances de indice_Routeur au routeur représenté par l'indice de la liste.
     for i in range(len(table_Totale[indice_Routeur])):
         d.append(table_Totale[indice_Routeur][i])
     #print("d = ", d)
-    n = len(table_Totale)
-    S = [indice_Routeur]
-    S_Compl = []
+    
+    n = len(table_Totale[indice_Routeur])
+    S = [indice_Routeur]                    #Contient les routeurs déjà traités.
+    S_Compl = []                    #Contiendra les routeurs non encore traités.
     for i in range(n):
-        if i!=indice_Routeur :
+        if i != indice_Routeur :
             S_Compl.append(i)
-    while len(S_Compl)!=0 :
+    #print("S_Compl = ", S_Compl)
+    
+    while len(S_Compl) != 0 :
         min=S_Compl[0]
         i=0
-        for j in range(len(S_Compl)) :
+        for j in range(len(S_Compl)) :                  #Recherche du routeur parmis S_Compl dont la distance à indice_Routeur est la plus faible.
             if d[S_Compl[j]]<d[min] :
                 min = S_Compl[j]
                 i = j
-        S.append(S_Compl[i])
-        S_Compl.pop(j)
-        for i in range(len(S_Compl)):
-            if d[S_Compl[i]]>d[min]+table_Totale[min][S_Compl[i]]:
-                d[S_Compl[i]]=d[min]+table_Totale[min][S_Compl[i]]
+        #print("min, indice : ",  min,  i)
+        S.append(S_Compl[i])                    #On ajoute à S le routeur que l'on vient de traiter.
+        S_Compl.pop(i)                  #On l'enlève de S_Compl.
+        
+        for k in range(len(S_Compl)):                   #Pour chaque routeur non encore traité, on compare sa distance à indice_Routeur qu'on avait précédemment (dans d) avec celle en passant par le routeur à distance minimale de cette étape.
+            if d[S_Compl[k]]>d[min]+table_Totale[min][S_Compl[k]]:
+                d[S_Compl[k]]=d[min]+table_Totale[min][S_Compl[k]]
+        print("S_Compl = ", S_Compl)
         #print(d)
-    return d
+    return d                    #On a alors la distance minimale de indice_Routeur à chaque routeur.
