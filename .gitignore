@@ -2,3 +2,4 @@
 *.profile
 __pycache__/
 testsInutiles.py
+tests.py

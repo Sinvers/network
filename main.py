@@ -14,6 +14,7 @@ megaListe1= [ \
 ([(1, 0, 1)], [(1, 0, 1)], [0]) \
 ]
 """
+
 megaListe2= [ \
 ([(0, 0, 0)], [(0, 0, 0)], [1]), \
 ([(1, 0, 1)], [(1, 0, 1)], [0, 2, 3]), \
@@ -106,5 +107,5 @@ printTablesDeRoutage(liste)
 printTablesDeRoutage(megaListe2)
 tab_Tot = tableTotale(megaListe2)
 #print(tab_Tot)
-print("Dijkstra : ",  dijkstra(tab_Tot, 0))
+print("Dijkstra : ",  dijkstra(tab_Tot, 4))
 print("Fini")

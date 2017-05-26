@@ -1,4 +1,4 @@
-limit=15  #inferieur ou egal // Limite pour RIP
+LIMIT=15  #inferieur ou egal // Limite pour RIP.
 
 #La mega_Liste repésente l'ensemble des routeur de cette manière : liste de (ancienne table (ie. table non mise à jour, pur éviter les conflits si elle est mise à jour au meme moment), la nouvelle table (peut donc etre la meme que l'ancienne), et la liste des voisins).
 #Un routeur est représenté par son indice dans la mega_Liste.
@@ -22,7 +22,7 @@ def updateTable (table, couple, emetteur):                  #Met à jour la tabl
     j=0
     while j<len(table):
         j_reseau, j_cout, j_emetteur=table[j]
-        if j_cout>limit:
+        if j_cout>LIMIT:
             table.pop(j)
         else :
             j+=1
@@ -195,11 +195,19 @@ def tableTotale(mega_Liste):                    #Retourne une matrice contenant 
     return mat
 
 
+def reverse (liste):                    #Renvoie une nouvelle liste contenant les memes élements que liste mais dans l'odre "inverse".
+    n=len(liste)
+    liste_Temp = []
+    for i in range(n):
+        liste_Temp.append(liste[n-i-1])
+    return liste_Temp
+
+
 def dijkstra (table_Totale, indice_Routeur):
     
-    d=[]                    #C'est la liste qui contiendra les distances de indice_Routeur au routeur représenté par l'indice de la liste.
+    d=[]                    #C'est la liste qui contiendra les distances de indice_Routeur au routeur représenté par l'indice de la liste ainsi que le chemin à emprunter (sera sous forme de liste de couples (int list, int)).
     for i in range(len(table_Totale[indice_Routeur])):
-        d.append(table_Totale[indice_Routeur][i])
+        d.append(([i], table_Totale[indice_Routeur][i]))
     #print("d = ", d)
     
     n = len(table_Totale[indice_Routeur])
@@ -211,19 +219,32 @@ def dijkstra (table_Totale, indice_Routeur):
     #print("S_Compl = ", S_Compl)
     
     while len(S_Compl) != 0 :
-        min=S_Compl[0]
-        i=0
-        for j in range(len(S_Compl)) :                  #Recherche du routeur parmis S_Compl dont la distance à indice_Routeur est la plus faible.
-            if d[S_Compl[j]]<d[min] :
-                min = S_Compl[j]
-                i = j
-        #print("min, indice : ",  min,  i)
-        S.append(S_Compl[i])                    #On ajoute à S le routeur que l'on vient de traiter.
-        S_Compl.pop(i)                  #On l'enlève de S_Compl.
+        #print("d = ", d)
         
+        min=S_Compl[0]
+        indice_Min=0                    #Indice du routeur dans S_Compl.
+        for j in range(len(S_Compl)) :                  #Recherche du routeur parmis S_Compl dont la distance à indice_Routeur est la plus faible.
+            chemin_Min, distance_Min = d[min]
+            _, distance_Temp = d[S_Compl[j]]
+            if distance_Temp<distance_Min :
+                min = S_Compl[j]
+                indice_Min = j
+        #print("min, indice : ",  min,  indice_Min)
+        S.append(S_Compl[indice_Min])                    #On ajoute à S le routeur que l'on vient de traiter.
+        S_Compl.pop(indice_Min)                  #On l'enlève de S_Compl.
+        #print("dmin = ", d[min])
+        
+        chemin_Min, distance_Min = d[min]
         for k in range(len(S_Compl)):                   #Pour chaque routeur non encore traité, on compare sa distance à indice_Routeur qu'on avait précédemment (dans d) avec celle en passant par le routeur à distance minimale de cette étape.
-            if d[S_Compl[k]]>d[min]+table_Totale[min][S_Compl[k]]:
-                d[S_Compl[k]]=d[min]+table_Totale[min][S_Compl[k]]
-        print("S_Compl = ", S_Compl)
+            chemin, ancienne_Dist = d[S_Compl[k]]
+            #print("chemin,k",  chemin, k)
+            if ancienne_Dist>distance_Min+table_Totale[min][S_Compl[k]]:
+                chemin_Nouv = copieListe(chemin_Min)
+                chemin_Nouv.append(S_Compl[k])
+                #print("Chemin min : ", chemin_Min)
+                #print ("Nouveau chemin : ", chemin_Nouv)
+                d[S_Compl[k]]=(chemin_Nouv, distance_Min + table_Totale[min][S_Compl[k]])
+        #print("S_Compl = ", S_Compl)
         #print(d)
-    return d                    #On a alors la distance minimale de indice_Routeur à chaque routeur.
+        
+    return d                    #On a alors la distance minimale de indice_Routeur à chaque routeur ainsi que le chemin à parcourir.
