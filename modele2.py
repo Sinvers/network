@@ -64,6 +64,9 @@ class Reseau :
         for routeur in self.routeur_In:
             routeur.ajoutMessageOspf(message_Ospf)
     
+    def broadcastRip(self, message_Rip):
+        for routeur in self.routeur_In:
+            routeur.ajoutMessageRip
     
 class Routeur :
     
@@ -74,7 +77,7 @@ class Routeur :
     """
     
     def __init__(self, liste_Reseau):
-        self.protocole_Ospf = OSPF()
+        self.protocole_Ospf = OSPF(self)
         self.protocole_Rip = RIP()
         
         self.liste_Interfaces = []
@@ -87,11 +90,13 @@ class Routeur :
             except BufferError:
                 print("Le routeur n'a pas pu etre ajouté au reseau ",  liste_Reseau[indice], " car il est saturé")
     
+    
     def supprimerReseau(self, reseau):
         for indice_Interface in range(len(self.liste_Interfaces)):
             if self.liste_Interfaces[indice_Interface].reseau == reseau:
                 self.liste_Interfaces.pop(indice_Interface)
                 break
+    
     
     def getIndice(self, reseau):
         adresse_Sur_Reseau = self.getAdresse(reseau)
@@ -105,14 +110,19 @@ class Routeur :
                 return interface.adresse
         raise ValueError("Le routeur n'est pas dans le reseau recherché")
     
+    
     def ajoutMessageOspf(self, message_Ospf):
         self.protocole_Ospf.recevoirMessage(message_Ospf)
     
+    def ajoutMessageRip(self, message_Rip):
+        self.protocole_Rip.recevoirMessage(message_Rip)
+    
+    
     def envoyerMessages(self):
-        protocole_Ospf.envoyer(self.liste_Interfaces)
-        protocole_Rip.envoyer(self.liste_Interfaces)
-
-
+        self.protocole_Ospf.envoyer(self.liste_Interfaces)
+        self.protocole_Rip.envoyer(self.liste_Interfaces)
+    
+    
 
 class InterfaceReseau :
     
@@ -132,23 +142,107 @@ class OSPF :
         - matrice : c'est l'ensemble du reseau où chaque routeur est représenté par un indice, le lien se fait grace à la liste routeur_To_Index; l'élément dans la case (i, j) est la distance directe du routeur i au routeur j et inf si ils ne sont pas directement reliés : list list int
         - routeur_To_Index : fait le lien entre un routeur et son indice dans matrice qui est aussi son indice dans routeur_To_Index : list <Routeur>
         - liste_Chemin : la liste que l'on cherche à obtenir, celle qui donne le chemin a emprunter : liste <CheminOspf>
-        - message_A_Traiter : liste des messages qui devront etre traité lors de l'étape de traitement : list <MessageOspf>
-        - message_A_Envoyer : liste des messages qui devront etre envoyer lors de l'étape d'envoie : list <UpdateOspf>
+        - messages_A_Traiter : liste des messages qui devront etre traité lors de l'étape de traitement : list <MessageOspf>
+        - messages_A_Envoyer : liste des messages qui devront etre envoyer lors de l'étape d'envoie : list <UpdateOspf>
         - voisins : liste des routeurs qui sont les proches voisins du routeur concerné et qui contient un booléen qui donne si oui ou non le routeur a envoyé un message hello lors de la phase d'envoie : list <<Routeur>, bool>
     """
     
-    def __init__(self):
+    def __init__(self, routeur):
         self.matrice = [[]]
         self.routeur_To_Index = []
         self.liste_Chemin = []
-        self.message_A_Traiter = []
-        self.message_A_Envoyer = []
+        self.messages_A_Traiter = []
+        self.messages_A_Envoyer = []
         self.voisins = []
+        self.routeur = routeur
     
     def recevoirMessage(self, message):
-        self.message_A_Traiter.append(message)
+        self.messages_A_Traiter.append(message)
     
+    def envoyer(self, liste_Interfaces):
+        """On envoie les messages à envoyer puis on envoie les hellos à tous les voisins."""
+        
+        hello = HelloOspf(self)                 #On crée le message hello qui sera destiné à tous les voisins.
+        
+        for interface in liste_Interfaces:
+            
+            for message in self.messages_A_Envoyer:
+                interface.reseau.broadcastOspf(message)
+            
+            interface.reseau.broadcastOspf(hello)
+        
     
+    def traiter(self):
+        """On traite chacun des messages grace à leur méthode traiter(), puis on regarde dans voisins si tous les voisins sont encore là, sinon on agit en conséquence. Puis on applique Dijkstra pour avoir liste_Chemin."""
+        
+        for message in self.messages_A_Traiter:
+            message.traiter(self.voisins, self.matrice, self.routeur_To_Index)
+        
+        indice = 0
+        while indice < len(self.voisins):
+            routeur, bool = self.voisins[indice]
+            if bool==False:                 #Si le routeur n'a pas envoyé de message hello.
+                self.voisins.pop(indice)                    #On l'enlève des voisins.
+                
+                indice_In_Mat = self.routeur_To_Index.index(routeur)
+                for elt in self.matrice:
+                    elt.pop(indice_In_Mat)                  #On l'enlève de matrice.
+                self.matrice.pop(indice_In_Mat)
+                
+                self.routeur_To_Index.pop(indice_In_Mat)                    #On l'enlève de la liste des correspondances.
+            
+            indice += 1
+        
+        self.liste_Chemin = self.dijkstra()
+    
+    def dijkstra (self):
+        liste_Chemin=[]                    #C'est la liste qui contiendra les objets <CheminOspf>. //distances de indice_Routeur au routeur représenté par l'indice de la liste ainsi que le chemin à emprunter (sera sous forme de liste de couples (int list, int)).
+        indice_Self = self.routeur_To_Index.index(self.routeur)
+        
+        for indice in range(len(self.matrice)):                 #On initialise les chemins depuis self jusqu'aux routeurs concernés.
+            obj_Chemin = CheminOspf(self.routeur_To_Index[indice], self.matrice[indice][indice_Self], [self.routeur_To_Index[indice]])
+            liste_Chemin.append(obj_Chemin)
+        
+        #n = len(table_Totale[indice_Routeur])
+        S = [self.routeur]                    #Contient les routeurs déjà traités.
+        S_Compl = []                    #Contiendra les routeurs non encore traités.
+        for i in range(n):
+            if i != indice_Routeur :
+                S_Compl.append(i)
+        #print("S_Compl = ", S_Compl)
+        
+        while len(S_Compl) != 0 :
+            #print("d = ", d)
+            
+            min=S_Compl[0]
+            indice_Min=0                    #Indice du routeur dans S_Compl.
+            for j in range(len(S_Compl)) :                  #Recherche du routeur parmis S_Compl dont la distance à indice_Routeur est la plus faible.
+                chemin_Min, distance_Min = d[min]
+                _, distance_Temp = d[S_Compl[j]]
+                if distance_Temp<distance_Min :
+                    min = S_Compl[j]
+                    indice_Min = j
+            #print("min, indice : ",  min,  indice_Min)
+            S.append(S_Compl[indice_Min])                    #On ajoute à S le routeur que l'on vient de traiter.
+            S_Compl.pop(indice_Min)                  #On l'enlève de S_Compl.
+            #print("dmin = ", d[min])
+            
+            chemin_Min, distance_Min = d[min]
+            for k in range(len(S_Compl)):                   #Pour chaque routeur non encore traité, on compare sa distance à indice_Routeur qu'on avait précédemment (dans d) avec celle en passant par le routeur à distance minimale de cette étape.
+                chemin, ancienne_Dist = d[S_Compl[k]]
+                #print("chemin,k",  chemin, k)
+                if ancienne_Dist>distance_Min+table_Totale[min][S_Compl[k]]:
+                    chemin_Nouv = copieListe(chemin_Min)
+                    chemin_Nouv.append(S_Compl[k])
+                    #print("Chemin min : ", chemin_Min)
+                    #print ("Nouveau chemin : ", chemin_Nouv)
+                    d[S_Compl[k]]=(chemin_Nouv, distance_Min + table_Totale[min][S_Compl[k]])
+            #print("S_Compl = ", S_Compl)
+            #print(d)
+            
+        return d                    #On a alors la distance minimale de indice_Routeur à chaque routeur ainsi que le chemin à parcourir.
+
+
 class CheminOspf :
     
     """
