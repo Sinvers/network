@@ -1,4 +1,6 @@
 
+infini = float('inf')
+
 
 class Reseau :
     
@@ -58,6 +60,10 @@ class Reseau :
         except IndexError:
             print("L'indice du routeur n'est pas dans la liste des adresses réservées")
     
+    def broadcastOspf(self, message_Ospf):                    #message_Ospf est du type <MessageOspf>
+        for routeur in self.routeur_In:
+            routeur.ajoutMessageOspf(message_Ospf)
+    
     
 class Routeur :
     
@@ -98,6 +104,14 @@ class Routeur :
             if interface.reseau == reseau:
                 return interface.adresse
         raise ValueError("Le routeur n'est pas dans le reseau recherché")
+    
+    def ajoutMessageOspf(self, message_Ospf):
+        self.protocole_Ospf.recevoirMessage(message_Ospf)
+    
+    def envoyerMessages(self):
+        protocole_Ospf.envoyer(self.liste_Interfaces)
+        protocole_Rip.envoyer(self.liste_Interfaces)
+
 
 
 class InterfaceReseau :
@@ -114,40 +128,162 @@ class InterfaceReseau :
     
 class OSPF :
     
+    """
+        - matrice : c'est l'ensemble du reseau où chaque routeur est représenté par un indice, le lien se fait grace à la liste routeur_To_Index; l'élément dans la case (i, j) est la distance directe du routeur i au routeur j et inf si ils ne sont pas directement reliés : list list int
+        - routeur_To_Index : fait le lien entre un routeur et son indice dans matrice qui est aussi son indice dans routeur_To_Index : list <Routeur>
+        - liste_Chemin : la liste que l'on cherche à obtenir, celle qui donne le chemin a emprunter : liste <CheminOspf>
+        - message_A_Traiter : liste des messages qui devront etre traité lors de l'étape de traitement : list <MessageOspf>
+        - message_A_Envoyer : liste des messages qui devront etre envoyer lors de l'étape d'envoie : list <UpdateOspf>
+        - voisins : liste des routeurs qui sont les proches voisins du routeur concerné et qui contient un booléen qui donne si oui ou non le routeur a envoyé un message hello lors de la phase d'envoie : list <<Routeur>, bool>
+    """
+    
+    def __init__(self):
+        self.matrice = [[]]
+        self.routeur_To_Index = []
+        self.liste_Chemin = []
+        self.message_A_Traiter = []
+        self.message_A_Envoyer = []
+        self.voisins = []
+    
+    def recevoirMessage(self, message):
+        self.message_A_Traiter.append(message)
     
     
 class CheminOspf :
     
+    """
+        - destination : adresse du reseau destination : String
+        - cout : le coout pour atteindre cette destination : int
+        - chemin : c'est le chemin a emprunter pour atteindre destination en cout : list <Routeur>
+    """
     
+    def __init__(self, destination, cout, chemin):
+        self.destination = destination
+        self.cout = cout
+        self.chemin = chemin
     
     
 class MessageOspf :
     
+    """
+        Ne contient qu'une méthode.
+    """
+    
+    def traiter(self, voisins, matrice, routeur_To_Index):
+        pass
+
+
+
+class HelloOspf(MessageOspf):
+    
+    """
+        - expediteur : représente l'expediteur du message hello : <Routeur>
+        #- reseau : c'est le reseau par lequel transite ce message hello : <Reseau>
+    """
+    
+    def __init__(self, expediteur):
+        self.expediteur = expediteur
+    
+    
+    def traiter(self, voisins, matrice, routeur_To_Index):
+        indice_Recherche = -1
+        for indice in range(len(voisins)):
+            routeur, bool = voisins[indice]
+            if routeur == self.expediteur:
+                indice_Recherche = indice
+                break
+        if indice_Recherche == -1 :
+            voisins.append((self.expediteur, True))
+        else :
+            voisins[indice_Recherche] = (self.expediteur, True)
+        
+        
+    """def traiter(self, voisins, matrice, routeur_To_Index):
+        expediteur = self.expediteur
+        if expediteur in routeur_To_Index :
+            try:
+                indice = voisins.index((expediteur, False))
+                rout, booleen = voisins[indice]
+                voisins[indice] = (rout, True)
+            except ValueError:
+                print("La liste routeur_To_Index n'est pas à jour (il y a le routeur dans routeur_To_Index mais pas dans voisins) ou le booleen n'a pas été remis à False")
+            
+            try:
+                debit = self.reseau.bande_Passante
+                indice_Expediteur = routeur_To_Index.index(expediteur)
+                indice_Self = routeur_To_Index.index(self)
+                if debit < matrice[indice_Expediteur][indice_Self]:
+                    matrice[indice_Expediteur][indice_Self] = debit
+                    matrice[indice_Self][indice_Expediteur] = debit
+            except ValueError:
+                print("La liste routeur_To_Index ne contient pas l'expéditeur ou self")
+        
+        else:
+            n=len(routeur_To_Index)
+            routeur_To_Index.append(routeur)
+            debit = self.reseau.bande_Passante
+            matrice
+    """
+    
+class UpdateOspf(MessageOspf):
+    
+    """
+        - coupleRouteur : le couple de routeur à mettre à jour : (<Routeur>, <Routeur>)
+        - cout : cout pour passer d'un routeur à l'autre : int
+    """
+    
+    def __init__(self, routeur_1, routeur_2, cout):
+        self.coupleRouteur = (routeur_1, routeur_2)
+        self.cout = cout
+    
+    
+    def traiter(self, voisins, matrice, routeur_To_Index):
+        routeur_1, routeur_2 = self.coupleRouteur
+        
+        try:
+            indice_Routeur_1 = routeur_To_Index.index(routeur_1)
+        except ValueError:                  #Cas où on découvre le routeur_1.
+            n=len(matrice)
+            for i in range(n):
+                matrice[i].append(infini)
+            new_Line = []
+            for i in range(n):
+                new_Line.append(infini)
+            new_Line.append(0)
+            matrice.append(new_Line)
+            routeur_To_Index.append(routeur_1)
+            indice_Routeur_1 = n
+        
+        try:
+            indice_Routeur_2 = routeur_To_Index.index(routeur_2)
+        except ValueError:                  #Cas où on découvre le routeur_2.
+            n=len(matrice)
+            for i in range(n):
+                matrice[i].append(infini)
+            new_Line = []
+            for i in range(n):
+                new_Line.append(infini)
+            new_Line.append(0)
+            matrice.append(new_Line)
+            routeur_To_Index.append(routeur_2)
+            indice_Routeur_2 = n
+        
+        matrice[indice_Routeur_1][indice_Routeur_2] = self.cout
+        matrice[indice_Routeur_2][indice_Routeur_1] = self.cout
+
+
+
+#class RIP :
     
     
 
-class HelloOspf :
-    
-    
-    
-    
-class UpdateOspf :
-    
-    
 
-    
-    
-class RIP :
-    
-    
-
-
-class EltTableRip :
+#class EltTableRip :
     
     
     
 
-class MessageRip :
+#class MessageRip :
     
     
     
