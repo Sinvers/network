@@ -28,6 +28,9 @@ class Reseau :
         self.adresse_Dispo = [True]                 #L'adresse 0 est celle du routeur (donc indisponible).
         self.bande_Passante = debit
     
+    """def __str__(self):
+        print("Réseau ", self.adresse, " ayant les routeurs ",  self.routeur_In, " et de bande passante ",  self.debit)"""
+    
     
     def getAdresseGenerique(self):
         Index = self.adresse.rfind('.')
@@ -86,9 +89,9 @@ class Routeur :
         - protocole_Rip : objet correspondant au fonctionnement de RIP sur ce routeur : <RIP>
     """
     
-    def __init__(self, liste_Reseau):
+    def __init__(self, liste_Reseau):                   #liste_Reseau est une liste de <Reseau>.
         self.protocole_Ospf = OSPF(self)
-        self.protocole_Rip = RIP()
+        self.protocole_Rip = RIP(self)
         
         self.liste_Interfaces = []
         n=len(liste_Reseau)
@@ -100,6 +103,8 @@ class Routeur :
             except BufferError:
                 print("Le routeur n'a pas pu etre ajouté au reseau ",  liste_Reseau[indice], " car il est saturé")
 
+    """def __str__(self):
+        return "Routeur ayant " #+ self.liste_Interfaces"""
     
     
     def getIndice(self, reseau):
@@ -153,6 +158,8 @@ class InterfaceReseau :
         self.adresse = adresse_Du_Routeur
         self.reseau = reseau
     
+    """def __str__(self):
+        return "Routeur étant dans " + adresse"""
     
 class OSPF :
     
@@ -166,13 +173,16 @@ class OSPF :
     """
     
     def __init__(self, routeur):
-        self.matrice = [[]]
-        self.routeur_To_Index = []
+        self.matrice = [[0]]
+        self.routeur_To_Index = [routeur]
         self.liste_Chemin = []
         self.messages_A_Traiter = []
         self.messages_A_Envoyer = []
         self.voisins = []
         self.routeur = routeur
+    
+    """def __str__(self):
+        return "Protocole OSPF associé à " + print(self.routeur) + "dont la matrice associée au protocole OSPF : " +  self.matrice + " avec pour correspondance : " +  print(self.routeur_To_Index)"""
     
     def recevoirMessage(self, message):
         self.messages_A_Traiter.append(message)
@@ -409,13 +419,14 @@ class RIP :
         - table : correspond à la table du routeur associée au protocole RIP : list <EltTableRip>
         - voisins : Liste des voisins où l'on stockera un booléen qui est True si on a reçu la table du voisin en question et False sinon : list (<Routeur>, bool)
         - message_A_Traiter : liste des messages que l'on va devoir traiter lors des traitements : list <MessageRip>
-        - routeur : c'est le routeur sur lequel est initialisé le protocole RIP : <Routeur>
+        - routeur : c'est le routeur sur lequel est initialisé le protocole RIP : <Routeur>   #??????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????
     """
     
-    def __init__(self):
+    def __init__(self, routeur):
         self.table = []
         self.voisins = []
         self.messages_A_Traiter = []
+        self.routeur = routeur
     
     def recevoirMessage(self, message):
         self.messages_A_Traiter.append(message)
@@ -470,8 +481,12 @@ class RIP :
     def traiter(self):
         """On traite les messages à traiter en appelant leur fonction traiter, et si certain des messages n'ont pas été traité, on les retire de la table."""
         
-        for message in self.message_A_Traiter:
-            message.traiter(self.table)
+        for message in self.messages_A_Traiter:
+            for elt in message.table:
+                self.UpdateAvecUneLigne(elt, message.expediteur)
+            self.confirmeVoisin(message.expediteur)
+            
+        
         
         indice = 0
         while indice < len(self.voisins):
@@ -506,14 +521,14 @@ class MessageRip :
     """
         - expediteur : le routeur d'où provient le message : <Routeur>
         - table : la table de l'expediteur : list <EltTableRip>
-        - routeur : routeur sur lequel est activé RIP : <Routeur>
+        - protocole_Rip : protocole RIP qui est activé sur le routeur : <Routeur>
     """
     
     def __init__(self, expediteur, table):
         self.expediteur = expediteur
         self.table = table
     
-    def traiter(self):
+    """def traiter(self):
         for elt in self.table:
-            self.routeur.protocole_Rip.UpdateAvecUneLigne(elt, self.expediteur)
-        self.routeur.protocole_Rip.confirmeVoisin(self.expediteur)
+            self.protocole_Rip.UpdateAvecUneLigne(elt, self.expediteur)
+        self.protocole_Rip.confirmeVoisin(self.expediteur)"""
