@@ -1,6 +1,14 @@
 
 infini = float('inf')
 
+def copieListe(liste):                  #Crée et retourne une copie de liste. 
+    copie=[]
+    for i in range(len(liste)):
+        copie.append(liste[i])
+    return copie
+
+
+
 
 class Reseau :
     
@@ -66,7 +74,7 @@ class Reseau :
     
     def broadcastRip(self, message_Rip):
         for routeur in self.routeur_In:
-            routeur.ajoutMessageRip
+            routeur.ajoutMessageRip(message_Rip)
     
 class Routeur :
     
@@ -89,13 +97,7 @@ class Routeur :
                 self.liste_Interfaces.append(interface)
             except BufferError:
                 print("Le routeur n'a pas pu etre ajouté au reseau ",  liste_Reseau[indice], " car il est saturé")
-    
-    
-    def supprimerReseau(self, reseau):
-        for indice_Interface in range(len(self.liste_Interfaces)):
-            if self.liste_Interfaces[indice_Interface].reseau == reseau:
-                self.liste_Interfaces.pop(indice_Interface)
-                break
+
     
     
     def getIndice(self, reseau):
@@ -109,20 +111,34 @@ class Routeur :
             if interface.reseau == reseau:
                 return interface.adresse
         raise ValueError("Le routeur n'est pas dans le reseau recherché")
-    
-    
+
+
+
     def ajoutMessageOspf(self, message_Ospf):
         self.protocole_Ospf.recevoirMessage(message_Ospf)
     
     def ajoutMessageRip(self, message_Rip):
         self.protocole_Rip.recevoirMessage(message_Rip)
-    
-    
+
+
+
     def envoyerMessages(self):
         self.protocole_Ospf.envoyer(self.liste_Interfaces)
         self.protocole_Rip.envoyer(self.liste_Interfaces)
     
-    
+    def traiterLesMessages(self):
+        self.protocole_Ospf.traiter()
+        self.protocole_Rip.traiter()
+
+
+    def supprimerReseau(self, reseau):
+        for indice_Interface in range(len(self.liste_Interfaces)):
+            if self.liste_Interfaces[indice_Interface].reseau == reseau:
+                self.liste_Interfaces.pop(indice_Interface)
+                break
+
+
+
 
 class InterfaceReseau :
     
@@ -170,7 +186,14 @@ class OSPF :
                 interface.reseau.broadcastOspf(message)
             
             interface.reseau.broadcastOspf(hello)
-        
+    
+    
+    def trouverRouteurDansChemin(self, routeur):
+        for chemin in self.liste_Chemin:
+            if chemin.chemin[-1] == routeur:
+                chemin_Recherche = chemin
+                break
+        return chemin_Recherche
     
     def traiter(self):
         """On traite chacun des messages grace à leur méthode traiter(), puis on regarde dans voisins si tous les voisins sont encore là, sinon on agit en conséquence. Puis on applique Dijkstra pour avoir liste_Chemin."""
@@ -187,7 +210,7 @@ class OSPF :
                 indice_In_Mat = self.routeur_To_Index.index(routeur)
                 for elt in self.matrice:
                     elt.pop(indice_In_Mat)                  #On l'enlève de matrice.
-                self.matrice.pop(indice_In_Mat)
+                self.matrice.pop(indice_In_Mat)                 #On enlève sa colonne entièrement.
                 
                 self.routeur_To_Index.pop(indice_In_Mat)                    #On l'enlève de la liste des correspondances.
             
@@ -197,50 +220,61 @@ class OSPF :
     
     def dijkstra (self):
         liste_Chemin=[]                    #C'est la liste qui contiendra les objets <CheminOspf>. //distances de indice_Routeur au routeur représenté par l'indice de la liste ainsi que le chemin à emprunter (sera sous forme de liste de couples (int list, int)).
-        indice_Self = self.routeur_To_Index.index(self.routeur)
+        indice_Routeur_Self = self.routeur_To_Index.index(self.routeur)
         
         for indice in range(len(self.matrice)):                 #On initialise les chemins depuis self jusqu'aux routeurs concernés.
-            obj_Chemin = CheminOspf(self.routeur_To_Index[indice], self.matrice[indice][indice_Self], [self.routeur_To_Index[indice]])
+            obj_Chemin = CheminOspf(self.routeur_To_Index[indice], self.matrice[indice][indice_Routeur_Self], [self.routeur_To_Index[indice]])
             liste_Chemin.append(obj_Chemin)
+            #if indice == indice_Routeur_Self:
+            #    obj_Chemin_Self = obj_Chemin
         
-        #n = len(table_Totale[indice_Routeur])
+        n = len(self.matrice)
         S = [self.routeur]                    #Contient les routeurs déjà traités.
         S_Compl = []                    #Contiendra les routeurs non encore traités.
         for i in range(n):
-            if i != indice_Routeur :
-                S_Compl.append(i)
+            if i != indice_Routeur_Self :
+                routeur_I = self.routeur_To_Index[i]
+                S_Compl.append(routeur_I)
         #print("S_Compl = ", S_Compl)
         
-        while len(S_Compl) != 0 :
-            #print("d = ", d)
-            
-            min=S_Compl[0]
-            indice_Min=0                    #Indice du routeur dans S_Compl.
-            for j in range(len(S_Compl)) :                  #Recherche du routeur parmis S_Compl dont la distance à indice_Routeur est la plus faible.
-                chemin_Min, distance_Min = d[min]
-                _, distance_Temp = d[S_Compl[j]]
+        while len(S_Compl) != 0:            
+            min = S_Compl[0]                   #Indice du routeur.
+            indice_Min_S_Compl = 0                    #Indice du routeur dans S_Compl.
+            for j in range(len(S_Compl)) :                  #Recherche du routeur parmis S_Compl dont la distance à indice_Routeur_Self est la plus faible.
+                #chemin_Min, distance_Min = d[min]
+                chemin_Min = self.trouverRouteurDansChemin(min)
+                chemin_Temp = self.trouverRouteurDansChemin(S_Compl[j])
+
+                distance_Min = chemin_Min.cout
+                distance_Temp = chemin_Temp.cout
+
+                
+                #_, distance_Temp = d[S_Compl[j]]
                 if distance_Temp<distance_Min :
                     min = S_Compl[j]
-                    indice_Min = j
-            #print("min, indice : ",  min,  indice_Min)
-            S.append(S_Compl[indice_Min])                    #On ajoute à S le routeur que l'on vient de traiter.
-            S_Compl.pop(indice_Min)                  #On l'enlève de S_Compl.
-            #print("dmin = ", d[min])
+                    indice_Min_S_Compl = j
             
-            chemin_Min, distance_Min = d[min]
+            S.append(min)                    #On ajoute à S le routeur que l'on vient de traiter.
+            S_Compl.pop(indice_Min_S_Compl)                  #On l'enlève de S_Compl.
+            
+            chemin_Min = self.trouverRouteurDansChemin(min)
+            distance_Min = chemin_Min.cout
+            chemin = chemin_Min.chemin                      #C'est la liste des routeurs.
+            
             for k in range(len(S_Compl)):                   #Pour chaque routeur non encore traité, on compare sa distance à indice_Routeur qu'on avait précédemment (dans d) avec celle en passant par le routeur à distance minimale de cette étape.
-                chemin, ancienne_Dist = d[S_Compl[k]]
-                #print("chemin,k",  chemin, k)
-                if ancienne_Dist>distance_Min+table_Totale[min][S_Compl[k]]:
-                    chemin_Nouv = copieListe(chemin_Min)
+                
+                chemin_Temp = self.trouverRouteurDansChemin(S_Compl[k])
+                ancienne_Dist = chemin_Temp.cout
+                nouvelle_Dist = distance_Min+self.matrice[self.routeur_To_Index.index(min)][self.routeur_To_Index.index(S_Compl[k])]
+                if ancienne_Dist>nouvelle_Dist:
+                    chemin_Nouv = copieListe(chemin)
                     chemin_Nouv.append(S_Compl[k])
-                    #print("Chemin min : ", chemin_Min)
-                    #print ("Nouveau chemin : ", chemin_Nouv)
-                    d[S_Compl[k]]=(chemin_Nouv, distance_Min + table_Totale[min][S_Compl[k]])
+                    
+                    chemin_Temp.chemin = chemin_Nouv
+                    chemin_Temp.cout = nouvelle_Dist
             #print("S_Compl = ", S_Compl)
-            #print(d)
             
-        return d                    #On a alors la distance minimale de indice_Routeur à chaque routeur ainsi que le chemin à parcourir.
+        return liste_Chemin                    #On a alors la distance minimale de self.routeur à chaque routeur ainsi que le chemin à parcourir le tout dans des objets CheminOspf.
 
 
 class CheminOspf :
@@ -367,18 +401,52 @@ class UpdateOspf(MessageOspf):
 
 
 
-#class RIP :
+class RIP :
     
+    """
+        - table : correspond à la table du routeur associée au protocole RIP : list <EltTableRip>
+        - voisins : 
+        - message_A_Traiter : liste des messages que l'on va devoir traiter lors des traitements : list <MessageRip>
+        - routeur : c'est le routeur sur lequel est initialisé le protocole RIP : <Routeur>
+    """
     
+    def __init__(self):
+        self.table = []
+        self.voisins = []
+        self.messages_A_Traiter = []
+    
+    def recevoirMessage(self, message):
+        self.messages_A_Traiter.append(message)
+    
+    def envoyer(self, liste_Interfaces):
+        for interface in liste_Interfaces:
+            message = MessageRip(self.routeur, self.table)
+            interface.reseau.broadcastRip(message)
 
 
-#class EltTableRip :
+class EltTableRip :
     
+    """
+        - destination : c'est l'adresse du réseau de destination : String
+        - cout : c'est le cout du chemin : int
+        - next_Hop : c'est le routeur suivant par lequel il faut passer pour atteindre la destination : <Routeur>
+    """
     
-    
+    def __init__(self, dest, cout, next_Hop):
+        self.destination = dest
+        self.cout = cout
+        self.next_Hop = next_Hop
 
-#class MessageRip :
-    
-    
-    
 
+class MessageRip :
+    
+    """
+        - expediteur : le routeur d'où provient le message
+        - table : la table de l'expediteur : list <EltTableRip>
+    """
+    
+    def __init__(self, expediteur, table):
+        self.expediteur = expediteur
+        self.table = table
+    
+    
