@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE Session SYSTEM "Session-5.0.dtd">
+<!-- This file was generated automatically, do not edit. -->
+<!-- Saved: 2017-05-30, 23:41:20 -->
+<Session version="5.0">
+  <Filenames>
+    <Filename cline="0" cindex="0" folds="" zoom="0">/home/sinvers/Documents/programmation/network/Modele2/main.py</Filename>
+    <Filename cline="1" cindex="21" folds="" zoom="1">/home/sinvers/Documents/programmation/network/Modele2/ospf.py</Filename>
+    <Filename cline="122" cindex="0" folds="" zoom="0">/home/sinvers/Documents/programmation/network/Modele2/rip.py</Filename>
+    <Filename cline="2" cindex="1" folds="" zoom="0">/home/sinvers/Documents/programmation/network/Modele2/structures.py</Filename>
+  </Filenames>
+  <ActiveWindow cline="2" cindex="1">/home/sinvers/Documents/programmation/network/Modele2/structures.py</ActiveWindow>
+  <Breakpoints/>
+  <Watchexpressions/>
+  <DebugInfo>
+    <CommandLine></CommandLine>
+    <WorkingDirectory>/home/sinvers/Documents/programmation/premiertest</WorkingDirectory>
+    <Environment></Environment>
+    <ReportExceptions value="True"/>
+    <Exceptions/>
+    <IgnoredExceptions>
+      <IgnoredException>TypeError</IgnoredException>
+      <IgnoredException>ValueError</IgnoredException>
+    </IgnoredExceptions>
+    <AutoClearShell value="True"/>
+    <TracePython value="False"/>
+    <AutoContinue value="True"/>
+    <CovexcPattern/>
+  </DebugInfo>
+  <Bookmarks/>
+</Session>

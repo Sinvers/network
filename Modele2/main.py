@@ -1,4 +1,4 @@
-from modele2 import *
+from structures import *
 
 """Ce qu'on peut faire :
     - créer un réseau
@@ -6,7 +6,7 @@ from modele2 import *
     - supprimer un routeur d'un réseau
     - envoyer les messages
     - traiter les messages
-    - """
+"""
 
 reseau1 = Reseau('10.0.0.0',  100)
 reseau2 = Reseau('11.0.0.0',  150)
@@ -23,12 +23,11 @@ routeur6 = Routeur([reseau5, reseau1])
 
 liste_Des_Routeurs = [routeur1, routeur2, routeur3, routeur4, routeur5, routeur6]
 
-for coup in range(10):
-    for routeur in liste_Des_Routeurs:
-        routeur.envoyerMessages()
+for routeur in liste_Des_Routeurs:
+    routeur.envoyerMessages()
 
-    for routeur in liste_Des_Routeurs:
-        routeur.traiterLesMessages()
+for routeur in liste_Des_Routeurs:
+    routeur.traiterLesMessages()
 
 print(routeur1.protocole_Ospf.matrice)
 print(routeur2.protocole_Ospf.matrice)

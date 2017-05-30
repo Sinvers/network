@@ -80,7 +80,8 @@ class Reseau :
     def broadcastRip(self, message_Rip):
         for routeur in self.routeur_In:
             routeur.ajoutMessageRip(message_Rip)
-    
+
+
 class Routeur :
     
     """
@@ -337,6 +338,8 @@ class HelloOspf(MessageOspf):
         else :
             voisins[indice_Recherche] = (self.expediteur, True)
         
+        #Creer message update que l'on traite tout de suite.
+        
         
     """def traiter(self, voisins, matrice, routeur_To_Index):
         expediteur = self.expediteur
@@ -485,7 +488,6 @@ class RIP :
             for elt in message.table:
                 self.UpdateAvecUneLigne(elt, message.expediteur)
             self.confirmeVoisin(message.expediteur)
-            
         
         
         indice = 0
