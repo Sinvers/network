@@ -6,7 +6,7 @@ from rip import *
 #Mode 0 : active OSPF et RIP
 #Mode 1 : active OSPF uniquement
 #Mode 2 : active RIP uniquement.
-MODE = 0
+MODE = 1
 
 DEBUG = True                    #Active ou désactive le mode débug.
 
@@ -81,18 +81,24 @@ class Reseau :
             print("L'indice du routeur n'est pas dans la liste des adresses réservées")
     
     def broadcastOspf(self, message_Ospf):                    #message_Ospf est du type <MessageOspf>; envoie un message Ospf.
+        """
         if DEBUG:
             print("Début d'un broadcast Ospf")
+        """
         
         for routeur in self.routeur_In:
-            routeur.ajoutMessageOspf(message_Ospf)
+            if not routeur == message_Ospf.expediteur:
+                routeur.ajoutMessageOspf(message_Ospf)
     
     def broadcastRip(self, message_Rip):
+        """
         if DEBUG:
             print("Début d'un broadcast Rip")
+        """
         
         for routeur in self.routeur_In:
-            routeur.ajoutMessageRip(message_Rip)
+            if not routeur == message_Rip.expediteur:
+                routeur.ajoutMessageRip(message_Rip)
 
 
 class Routeur :
@@ -128,6 +134,11 @@ class Routeur :
             except BufferError:
                 print("Le routeur n'a pas pu etre ajouté au reseau ",  liste_Reseau[indice], " car il est saturé")
     
+    def __str__(self):
+        string = ""
+        for interface in self.liste_Interfaces:
+            string = string + interface.adresse + ' et ' 
+        return "Routeur d'adresses : " + string
     
     def getIndice(self, reseau):
         adresse_Sur_Reseau = self.getAdresse(reseau)
@@ -144,14 +155,17 @@ class Routeur :
 
 
     def ajoutMessageOspf(self, message_Ospf):
+        """
         if DEBUG:
             print("On ajoute un message Ospf")
-        
+        """
         self.protocole_Ospf.recevoirMessage(message_Ospf)
     
     def ajoutMessageRip(self, message_Rip):
+        """
         if DEBUG:
             print("On ajoute un message Rip")
+        """
         
         self.protocole_Rip.recevoirMessage(message_Rip)
 
