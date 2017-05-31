@@ -26,5 +26,18 @@ print(routeur2.protocole_Ospf.matrice)
 routeur3.traiterLesMessages()
 print(routeur3.protocole_Ospf.matrice)
 
+routeur1.envoyerMessages()
+routeur2.envoyerMessages()
+routeur3.envoyerMessages()
+
+routeur1.traiterLesMessages()
+print(routeur1.protocole_Ospf.matrice)
+
+routeur2.traiterLesMessages()
+print(routeur2.protocole_Ospf.matrice)
+
+routeur3.traiterLesMessages()
+print(routeur3.protocole_Ospf.matrice)
+
 for routeur in liste_Routeur:
-    print("matrice routeur : ", routeur.protocole_Ospf.matrice)
+    print("matrice du routeur ", routeur.nom, " ", routeur.protocole_Ospf.matrice)
