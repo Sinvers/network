@@ -31,6 +31,9 @@ class Reseau :
         if DEBUG:
             print("Création du réseau d'adresse : ", self.adresse, " et de débit : ", debit)
     
+    def __str__(self):
+        return "Réseau " + self.adresse
+    
     
     def getAdresseGenerique(self):
         Index = self.adresse.rfind('.')
@@ -104,15 +107,18 @@ class Reseau :
 class Routeur :
     
     """
+        - nom : c'est le nom unique (il doit l'etre lors de la création du routeur) du routeur : string
         - liste_Interfaces : liste des interfaces du routeur : list <Interface>
         - protocole_Ospf : objet correspondant au fonctionnement de OSPF sur ce routeur : <OSPF>
         - protocole_Rip : objet correspondant au fonctionnement de RIP sur ce routeur : <RIP>
     """
     
-    def __init__(self, liste_Reseau):                   #liste_Reseau est une liste de <Reseau>.
+    def __init__(self, nom, liste_Reseau):                   #liste_Reseau est une liste de <Reseau>.
         
         if DEBUG:
-            print("Création d'un routeur")
+            print("Création de ", nom)
+        
+        self.nom = nom
         
         if MODE == 0 or MODE == 1:
             self.protocole_Ospf = OSPF(self)
@@ -138,7 +144,7 @@ class Routeur :
         string = ""
         for interface in self.liste_Interfaces:
             string = string + interface.adresse + ' et ' 
-        return "Routeur d'adresses : " + string
+        return "Routeur : " + self.nom + "; d'adresses ip : " + string
     
     def getIndice(self, reseau):
         adresse_Sur_Reseau = self.getAdresse(reseau)

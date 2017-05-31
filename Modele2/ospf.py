@@ -36,23 +36,29 @@ class OSPF :
     def recevoirMessage(self, message):
         self.messages_A_Traiter.append(message)
     
+    def ajouterMessageAEnvoyer(self, message):
+        self.messages_A_Envoyer.append(message)
+    
     def envoyer(self, liste_Interfaces):
         """On envoie les messages à envoyer puis on envoie les hellos à tous les voisins."""
         
+        for message in self.messages_A_Envoyer:
+            message.reseau_Emission.broadcastOspf(message)
+        
         for interface in liste_Interfaces:
             
-            for message in self.messages_A_Envoyer:
-                interface.reseau.broadcastOspf(message)
+            """for message in self.messages_A_Envoyer:                      #On n'envoie pas tous les messages sur tous les réseaux, mais uniquement sur le réseau qui est inscrit emission dans le message.
+                interface.reseau.broadcastOspf(message)"""
             
             hello = HelloOspf(self.routeur, interface.reseau)                   #On crée et on envoie les messages hello pour que nos voisins soient au courant que l'on est pas mort.
             interface.reseau.broadcastOspf(hello)
     
-    def envoyerUnMessageOspfPartoutSauf(self, message):
+    """def envoyerUnMessageOspfPartoutSauf(self, message):                 #Fait un broadcast 
         reseau_Ne_Pas_Envoyer = message.reseau_Emission
         
         for interface in self.routeur.liste_Interfaces:
             if not interface.reseau == reseau_Ne_Pas_Envoyer:
-                interface.reseau.broadcastOspf(message)
+                interface.reseau.broadcastOspf(message)"""
     
     def envoyerMatriceSur(self, reseau):
         if DEBUG:
@@ -195,7 +201,7 @@ class HelloOspf(MessageOspf):
     
     
     def traiter(self, voisins, matrice, routeur_To_Index, routeur_Qui_Recoit):
-        indice_Recherche = -1
+        indice_Recherche = -1                   #Représente l'indice du routeur si il est dans les voisins.
         for indice in range(len(voisins)):
             routeur, bool = voisins[indice]
             if routeur == self.expediteur:
@@ -256,9 +262,9 @@ class UpdateOspf(MessageOspf):
     
     def __init__(self, routeur_1, routeur_2, reseau_Emission, expediteur, cout):
         self.coupleRouteur = (routeur_1, routeur_2)
-        self.cout = cout                  ##C EST PAS LA BANDE PASSANTE DU RESEAU PAR LEQUEL ON LE RECOIT !!!!!!!!!!!!!!! Mais bien la bande passante qu'on doit définir lors de la création du message.
         self.reseau_Emission = reseau_Emission
         self.expediteur = expediteur
+        self.cout = cout                  ##C EST PAS LA BANDE PASSANTE DU RESEAU PAR LEQUEL ON LE RECOIT !!!!!!!!!!!!!!! Mais bien la bande passante qu'on doit définir lors de la création du message.
     
     def __str__(self):
         return "cout = " + str(self.cout)
@@ -308,5 +314,9 @@ class UpdateOspf(MessageOspf):
             modification_Cout = True
         
         if decouvert_Un_Routeur or modification_Cout:
-            routeur_Qui_Recoit.protocole_Ospf.envoyerUnMessageOspfPartoutSauf(self)
-            print("renvoie du message update : ", self)
+            for interface in routeur_Qui_Recoit.liste_Interfaces:
+                reseau_Ou_Envoyer = interface.reseau                    #Réseau sur lequel l'update new_Message_Update va etre envoyée.
+                new_Message_Update = UpdateOspf(routeur_1, routeur_2, reseau_Ou_Envoyer, self.expediteur, self.cout)                  #Nouvelle update puisque le réseau d'émission n'est pas forcément le meme que dans self.
+                routeur_Qui_Recoit.protocole_Ospf.ajouterMessageAEnvoyer(new_Message_Update)
+            if DEBUG:
+                print("renvoie du message update : ", self)
