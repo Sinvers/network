@@ -22,10 +22,10 @@ class RIP :
         self.messages_A_Traiter = []
         self.routeur = routeur
     
-    def recevoirMessage(self, message):
+    def recevoirMessageRip(self, message):
         self.messages_A_Traiter.append(message)
     
-    def envoyer(self, liste_Interfaces):
+    def envoyerRip(self, liste_Interfaces):
         for interface in liste_Interfaces:
             message = MessageRip(self.routeur, self.table)
             interface.reseau.broadcastRip(message)

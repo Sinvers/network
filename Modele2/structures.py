@@ -19,7 +19,7 @@ class Reseau :
         - adresse : String
         - routeurs_In : liste de routeurs présents dans ce réseau (initialement aucun routeur n'est présent, on les rajoute au fur et à mesure que l'on ajoute des routeurs : list <Routeur>
         - adresse_Dispo : liste de booléen dont l'indice représente la fin de l'adresse ip et la valeur du booléen donne si cette adresse est disponible ou non (True si elle est prise, False si elle est disponible) : list bool
-        - bande_Passante : bande passante du réseau : int
+        - bande_Passante : bande passante du réseau en bits/sec : int
     """
     
     def __init__(self, adresse, debit):
@@ -107,7 +107,7 @@ class Reseau :
 class Routeur :
     
     """
-        - nom : c'est le nom unique (il doit l'etre lors de la création du routeur) du routeur : string
+        - ___nom___ : c'est le nom unique (il doit l'etre lors de la création du routeur) du routeur : string
         - liste_Interfaces : liste des interfaces du routeur : list <Interface>
         - protocole_Ospf : objet correspondant au fonctionnement de OSPF sur ce routeur : <OSPF>
         - protocole_Rip : objet correspondant au fonctionnement de RIP sur ce routeur : <RIP>
@@ -118,7 +118,7 @@ class Routeur :
         if DEBUG:
             print("Création de ", nom)
         
-        self.nom = nom
+        self.___nom___ = nom
         
         if MODE == 0 or MODE == 1:
             self.protocole_Ospf = OSPF(self)
@@ -143,8 +143,8 @@ class Routeur :
     def __str__(self):
         string = ""
         for interface in self.liste_Interfaces:
-            string = string + interface.adresse + ' et ' 
-        return "Routeur : " + self.nom + "; d'adresses ip : " + string
+            string = string + interface.adresse + '  '
+        return "Routeur : " + self.___nom___ + "; d'adresses ip : " + string
     
     def getIndice(self, reseau):
         adresse_Sur_Reseau = self.getAdresse(reseau)
@@ -165,7 +165,7 @@ class Routeur :
         if DEBUG:
             print("On ajoute un message Ospf")
         """
-        self.protocole_Ospf.recevoirMessage(message_Ospf)
+        self.protocole_Ospf.recevoirMessageOspf(message_Ospf)
     
     def ajoutMessageRip(self, message_Rip):
         """
@@ -173,22 +173,22 @@ class Routeur :
             print("On ajoute un message Rip")
         """
         
-        self.protocole_Rip.recevoirMessage(message_Rip)
+        self.protocole_Rip.recevoirMessageRip(message_Rip)
 
 
 
-    def envoyerMessages(self):
+    def envoyerLesMessages(self):
         if MODE == 0 or MODE == 1:
             if DEBUG:
                 print("On envoie les messages Ospf")
             
-            self.protocole_Ospf.envoyer(self.liste_Interfaces)
+            self.protocole_Ospf.envoyerOspf(self.liste_Interfaces)
         
         if MODE == 0 or MODE == 2:
             if DEBUG:
                 print("On envoie les messages Rip")
             
-            self.protocole_Rip.envoyer(self.liste_Interfaces)
+            self.protocole_Rip.envoyerRip(self.liste_Interfaces)
     
     
     def traiterLesMessages(self):
@@ -196,7 +196,7 @@ class Routeur :
             if DEBUG:
                 print("Traitement des messages Ospf")
             
-            self.protocole_Ospf.traiter()
+            self.protocole_Ospf.traiterOspf()
         
         if MODE == 0 or MODE == 2:
             if DEBUG:
