@@ -73,7 +73,7 @@ class Reseau :
             indice_Routeur = routeur.getIndice(self)
             self.adresse_Dispo[indice_Routeur] = False
             
-            routeur.supprimeReseau(self)
+            routeur.supprimerReseau(self)
             
             if DEBUG:
                 print("On a bien supprimé un routeur du réseau ", self.adresse)
@@ -90,7 +90,7 @@ class Reseau :
         """
         
         for routeur in self.routeur_In:
-            if not routeur == message_Ospf.expediteur:
+            if not routeur == message_Ospf.expediteur:                  #On ne broadcast pas au routeur qui envoie le message.
                 routeur.ajoutMessageOspf(message_Ospf)
     
     def broadcastRip(self, message_Rip):
@@ -100,7 +100,7 @@ class Reseau :
         """
         
         for routeur in self.routeur_In:
-            if not routeur == message_Rip.expediteur:
+            if not routeur == message_Rip.expediteur:                   #On ne broadcast pas au routeur qui envoie le message.
                 routeur.ajoutMessageRip(message_Rip)
 
 
@@ -150,7 +150,7 @@ class Routeur :
         adresse_Sur_Reseau = self.getAdresse(reseau)
         index = adresse_Sur_Reseau.rfind('.')
         indice_Routeur = adresse_Sur_Reseau[(index+1):]
-        return indice_Routeur
+        return int(indice_Routeur)
     
     def getAdresse(self, reseau):
         for interface in self.liste_Interfaces:

@@ -11,9 +11,9 @@ class RIP :
     
     """
         - table : correspond à la table du routeur associée au protocole RIP : list <EltTableRip>
-        - voisins : Liste des voisins où l'on stockera un booléen qui est True si on a reçu la table du voisin en question et False sinon : list (<Routeur>, bool)
-        - message_A_Traiter : liste des messages que l'on va devoir traiter lors des traitements : list <MessageRip>
-        - routeur : c'est le routeur sur lequel est initialisé le protocole RIP : <Routeur>   #??????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????
+        - voisins : Liste des voisins où l'on stockera un couple dont le booléen qui est True si on a reçu la table du voisin en question et False sinon : list (<Routeur>, bool)
+        - messages_A_Traiter : liste des messages que l'on va devoir traiter lors des traitements : list <MessageRip>
+        - routeur : c'est le routeur sur lequel est initialisé le protocole RIP : <Routeur>
     """
     
     def __init__(self, routeur):
@@ -34,23 +34,23 @@ class RIP :
         destination = ligne_Table.destination
         nouveau_Cout = ligne_Table.cout
         
-        trouve = False
+        trouve = False                      #A t on trouvé la destination dans la table sur le routeur ?
         for indice in range(len(self.table)):
             ligne_Temp = self.table[indice]
             if ligne_Temp.destination == destination:
-                if nouveau_Cout+1 < ligne_Temp.cout:
+                trouve = True
+                
+                if nouveau_Cout+1 < ligne_Temp.cout:                    #Si le cout proposé par la nouvelle update + 1 est plus petit que celui d'avant, on modifie notre table.
                     self.table[indice].cout = nouveau_Cout+1
                     self.table[indice].next_Hop = expediteur
-                    trouve = True
-                elif ligne_Temp.next_Hop == expediteur:
+                if ligne_Temp.next_Hop == expediteur:                 #Si le routeur qui a envoyé l'update est celui par qui on devait passer on est obligé de modifier notre table car c'est lui qui controle le coup.
                     self.table[indice].cout = nouveau_Cout+1
-                    trouve = True
         
         if not trouve:
             nouv_Ligne = EltTableRip(destination, nouveau_Cout+1, expediteur)
-            self.table.append(nouv_Ligne)
+            self.table.append(nouv_Ligne)                   #Si on l'a pas trouvé c'est qu'on a une nouvelle information alors on ajoute cette information à notre table (on recrée un objet car sinon on ajouterait toujours le meme objet).
         
-        if AMELIORATION:
+        if AMELIORATION:                    #Une amélioration de RIP consiste à enlever les chemins dont le cout est superieur à une certaine limite (ici LIMIT) afin d'éviter des chemins infinis (qui s'incrémentent à chaque tour).
             j=0
             while j<len(self.table):
                 if self.table[j].cout>LIMIT:
@@ -58,17 +58,17 @@ class RIP :
                 else :
                     j+=1
     
-    def confirmeVoisin(self, expediteur):
-        trouve = False
+    def confirmeVoisin(self, expediteur):                   #Confirme que le voisin a bien envoyé sa table pendant ce tour, ie. passe à True le booléen correspondant au routeur dans voisins.
+        trouve = False                  #A t on trouvé le routeur dans les voisins ?
         
         for indice in range(len(self.voisins)):
             i_Routeur, i_Bool = self.voisins[indice]
             if i_Routeur == expediteur:
-                self.voisins[indice] = (i_Routeur, True)
+                self.voisins[indice] = (i_Routeur, True)                    #Si le voisin dans la liste est celui qui a envoyé le message alors on le marque comme présent (pour ce tour).
                 trouve = True
         
         if trouve == False:
-            self.voisins.append((expediteur, True))
+            self.voisins.append((expediteur, True))                 #Si le routeur qui a envoyé le message n'est pas dans la liste des voisins alors on le rajoute et on le marque comme présent (pour ce tour).
     
     
 

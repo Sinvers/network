@@ -35,3 +35,16 @@ for coup in range(10):
 
 routeur1.protocole_Ospf.afficheMatrice()
 routeur1.protocole_Ospf.afficheCheminsOspf()
+
+reseau3.supprimerRouteur(routeur3)
+
+for coup in range(10):
+    
+    for routeur in liste_Des_Routeurs:
+        routeur.envoyerLesMessages()
+    
+    for routeur in liste_Des_Routeurs:
+        routeur.traiterLesMessages()
+
+routeur1.protocole_Ospf.afficheMatrice()
+routeur1.protocole_Ospf.afficheCheminsOspf()

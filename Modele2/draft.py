@@ -30,6 +30,8 @@ routeur3.traiterLesMessages()
 print()
 
 #routeur1.protocole_Ospf.afficheMatrice()
-routeur1.protocole_Ospf.afficheCheminsOspf()
-routeur2.protocole_Ospf.afficheCheminsOspf()
-routeur3.protocole_Ospf.afficheCheminsOspf()
+#routeur1.protocole_Ospf.afficheCheminsOspf()
+#routeur2.protocole_Ospf.afficheCheminsOspf()
+#routeur3.protocole_Ospf.afficheCheminsOspf()
+
+
