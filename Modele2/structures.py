@@ -6,7 +6,7 @@ from rip import *
 #Mode 0 : active OSPF et RIP
 #Mode 1 : active OSPF uniquement
 #Mode 2 : active RIP uniquement.
-MODE = 1
+MODE = 2
 
 DEBUG = True                    #Active ou désactive le mode débug.
 

@@ -10,17 +10,18 @@ DEBUG = True                    #Active ou désactive le mode débug.
 class RIP :
     
     """
+        - routeur : c'est le routeur sur lequel est initialisé le protocole RIP : <Routeur>
         - table : correspond à la table du routeur associée au protocole RIP : list <EltTableRip>
         - voisins : Liste des voisins où l'on stockera un couple dont le booléen qui est True si on a reçu la table du voisin en question et False sinon : list (<Routeur>, bool)
         - messages_A_Traiter : liste des messages que l'on va devoir traiter lors des traitements : list <MessageRip>
-        - routeur : c'est le routeur sur lequel est initialisé le protocole RIP : <Routeur>
     """
     
     def __init__(self, routeur):
-        self.table = []
+        self.routeur = routeur
+        soi_Meme = EltTableRip(self.routeur, 0, self.routeur)
+        self.table = [soi_Meme]
         self.voisins = []
         self.messages_A_Traiter = []
-        self.routeur = routeur
     
     def recevoirMessageRip(self, message):
         self.messages_A_Traiter.append(message)
