@@ -1,9 +1,9 @@
 
 LIMIT = 15                  #Limite du nombre de saut pour RIP.
 
-AMELIORATION = True                 #Active (True) ou désactive (False) les améliorations.
+AMELIORATION = False                 #Active (True) ou désactive (False) les améliorations.
 
-DEBUG = True                    #Active ou désactive le mode débug.
+DEBUG = False                    #Active ou désactive le mode débug.
 
 
 
@@ -22,6 +22,10 @@ class RIP :
         self.table = [soi_Meme]
         self.voisins = []
         self.messages_A_Traiter = []
+    
+    def afficherTableRip(self):
+        for elt in self.table:
+            print(elt.donnerEltTableRip())
     
     def recevoirMessageRip(self, message):
         self.messages_A_Traiter.append(message)
@@ -94,6 +98,10 @@ class RIP :
                         self.voisins.pop(indice)                    #Si le next_Hop d'une ligne est un voisin qui a disparu, on enlève la ligne.
                     indice2+=1
             indice+=1
+        
+        for elt in self.voisins:
+            routeur, _ = elt
+            elt = routeur, False
 
 
 class EltTableRip :
@@ -108,6 +116,10 @@ class EltTableRip :
         self.destination = dest
         self.cout = cout
         self.next_Hop = next_Hop
+    
+    def donnerEltTableRip(self):
+        string = 'Destination : ' + self.destination.___nom___ + ' en ' + str(self.cout) + ' et en passant par ' + self.next_Hop.___nom___
+        return string
 
 
 class MessageRip :

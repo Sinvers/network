@@ -2,7 +2,7 @@
 infini = float('inf')
 dixPuissNeuf = 1000000000
 
-DEBUG = True                    #Active ou désactive le mode débug.
+DEBUG = False                    #Active ou désactive le mode débug.
 
 def copieListe(liste):                  #Crée et retourne une copie de liste. 
     copie=[]
