@@ -5,6 +5,12 @@ AMELIORATION = False                 #Active (True) ou désactive (False) les am
 
 DEBUG = False                    #Active ou désactive le mode débug.
 
+def copieListe(liste):                  #Crée et retourne une copie de liste. 
+    copie=[]
+    for i in range(len(liste)):
+        copie.append(liste[i])
+    return copie
+
 
 
 class RIP :
@@ -26,13 +32,15 @@ class RIP :
     def afficherTableRip(self):
         for elt in self.table:
             print(elt.donnerEltTableRip())
+
     
     def recevoirMessageRip(self, message):
         self.messages_A_Traiter.append(message)
     
     def envoyerRip(self, liste_Interfaces):
         for interface in liste_Interfaces:
-            message = MessageRip(self.routeur, self.table)
+            copie_Table = copieListe(self.table)
+            message = MessageRip(self.routeur, copie_Table)
             interface.reseau.broadcastRip(message)
     
     def UpdateAvecUneLigne(self, ligne_Table, expediteur):                  #Met à jour la table avec un seul EltTableRip.
@@ -48,8 +56,10 @@ class RIP :
                 if nouveau_Cout+1 < ligne_Temp.cout:                    #Si le cout proposé par la nouvelle update + 1 est plus petit que celui d'avant, on modifie notre table.
                     self.table[indice].cout = nouveau_Cout+1
                     self.table[indice].next_Hop = expediteur
+                    self.table[indice].confirme = True
                 if ligne_Temp.next_Hop == expediteur:                 #Si le routeur qui a envoyé l'update est celui par qui on devait passer on est obligé de modifier notre table car c'est lui qui controle le coup.
                     self.table[indice].cout = nouveau_Cout+1
+                    self.table[indice].confirme = True
         
         if not trouve:
             nouv_Ligne = EltTableRip(destination, nouveau_Cout+1, expediteur)
@@ -80,10 +90,12 @@ class RIP :
     def traiter(self):
         """On traite les messages à traiter en appelant leur fonction traiter, et si certain des messages n'ont pas été traité, on les retire de la table."""
         
-        for message in self.messages_A_Traiter:
+        for message in self.messages_A_Traiter:                 #On traite les messages à traiter.
             for elt in message.table:
-                self.UpdateAvecUneLigne(elt, message.expediteur)
+                self.UpdateAvecUneLigne(elt, message.expediteur)                    #On update self.table avec chacun des éléments de la table qui est dans le message.
             self.confirmeVoisin(message.expediteur)
+        
+        self.messages_A_Traiter = []                    #On remet la liste vide puisqu'on a alors traité tous les messages.
         
         
         indice = 0
@@ -95,9 +107,17 @@ class RIP :
                 indice2=0
                 while indice2 < len(self.table):
                     if self.voisins[indice2].next_Hop == self.voisins[indice]:
-                        self.voisins.pop(indice)                    #Si le next_Hop d'une ligne est un voisin qui a disparu, on enlève la ligne.
+                        self.table.pop(indice)                    #Si le next_Hop d'une ligne est un voisin qui a disparu, on enlève la ligne.
                     indice2+=1
             indice+=1
+        
+        indice = 0
+        while indice < len(self.table):
+            if not self.table[indice].confirme: #and not self.table[indice].destination == self.routeur:
+                self.table.pop(indice)
+            elif not self.table[indice].destination == self.routeur:                    #Le routeur sur lequel est initialisé le routeur sait toujours que le chemin pour aller de lui-même vers lui-même coute 0 en passant par lui-même (on ne doit donc pas mettre confirmer à False).
+                self.table[indice].confirme = False
+            indice += 1
         
         for elt in self.voisins:
             routeur, _ = elt
@@ -110,12 +130,14 @@ class EltTableRip :
         - destination : c'est l'adresse du réseau de destination : String ////////// Routeur destination : <Routeur>
         - cout : c'est le cout du chemin : int
         - next_Hop : c'est le routeur suivant par lequel il faut passer pour atteindre la destination : <Routeur>
+        - confirme : explicite si cette ligne de la table est toujours d'actualité (si on l'a bien reçu pendant ce tour) : bool
     """
     
     def __init__(self, dest, cout, next_Hop):
         self.destination = dest
         self.cout = cout
         self.next_Hop = next_Hop
+        self.confirme = True
     
     def donnerEltTableRip(self):
         string = 'Destination : ' + self.destination.___nom___ + ' en ' + str(self.cout) + ' et en passant par ' + self.next_Hop.___nom___
@@ -127,7 +149,6 @@ class MessageRip :
     """
         - expediteur : le routeur d'où provient le message : <Routeur>
         - table : la table de l'expediteur : list <EltTableRip>
-        - protocole_Rip : protocole RIP qui est activé sur le routeur : <Routeur>
     """
     
     def __init__(self, expediteur, table):

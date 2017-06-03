@@ -67,7 +67,44 @@ routeur4 = Routeur('routeur4', [reseau5, reseau1])
 
 liste_Des_Routeurs = [routeur1, routeur2, routeur3, routeur4]
 
-for tour in range(3):
+routeur1.envoyerLesMessages()
+routeur2.envoyerLesMessages()
+routeur3.envoyerLesMessages()
+routeur4.envoyerLesMessages()
+
+routeur1.traiterLesMessages()
+routeur2.traiterLesMessages()
+routeur3.traiterLesMessages()
+routeur4.traiterLesMessages()
+
+
+routeur1.envoyerLesMessages()
+routeur2.envoyerLesMessages()
+routeur3.envoyerLesMessages()
+routeur4.envoyerLesMessages()
+
+routeur1.traiterLesMessages()
+routeur2.traiterLesMessages()
+routeur3.traiterLesMessages()
+routeur4.traiterLesMessages()
+
+
+routeur1.envoyerLesMessages()
+routeur2.envoyerLesMessages()
+routeur3.envoyerLesMessages()
+routeur4.envoyerLesMessages()
+
+routeur1.traiterLesMessages()
+routeur2.traiterLesMessages()
+routeur3.traiterLesMessages()
+routeur4.traiterLesMessages()
+
+routeur1.protocole_Rip.afficherTableRip()
+print()
+
+reseau1.supprimerRouteur(routeur1)
+
+for tour in range(10):
     for routeur in liste_Des_Routeurs:
         routeur.envoyerLesMessages()
     
