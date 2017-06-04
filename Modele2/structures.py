@@ -6,7 +6,7 @@ from rip import *
 #Mode 0 : active OSPF et RIP
 #Mode 1 : active OSPF uniquement
 #Mode 2 : active RIP uniquement.
-MODE = 2
+MODE = 1
 DEBUG = False                    #Active ou désactive le mode débug.
 
 
@@ -205,7 +205,8 @@ class Routeur :
 
 
     def supprimerReseau(self, reseau):
-        for indice_Interface in range(len(self.liste_Interfaces)):
+        indice_Interface = 0
+        while indice_Interface < len(self.liste_Interfaces):
             if self.liste_Interfaces[indice_Interface].reseau == reseau:
                 self.liste_Interfaces.pop(indice_Interface)
                 

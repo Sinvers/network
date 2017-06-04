@@ -67,48 +67,44 @@ routeur4 = Routeur('routeur4', [reseau5, reseau1])
 
 liste_Des_Routeurs = [routeur1, routeur2, routeur3, routeur4]
 
-routeur1.envoyerLesMessages()
-routeur2.envoyerLesMessages()
-routeur3.envoyerLesMessages()
-routeur4.envoyerLesMessages()
 
-routeur1.traiterLesMessages()
-routeur2.traiterLesMessages()
-routeur3.traiterLesMessages()
-routeur4.traiterLesMessages()
+for i in range(2):
 
-
-routeur1.envoyerLesMessages()
-routeur2.envoyerLesMessages()
-routeur3.envoyerLesMessages()
-routeur4.envoyerLesMessages()
-
-routeur1.traiterLesMessages()
-routeur2.traiterLesMessages()
-routeur3.traiterLesMessages()
-routeur4.traiterLesMessages()
-
-
-routeur1.envoyerLesMessages()
-routeur2.envoyerLesMessages()
-routeur3.envoyerLesMessages()
-routeur4.envoyerLesMessages()
-
-routeur1.traiterLesMessages()
-routeur2.traiterLesMessages()
-routeur3.traiterLesMessages()
-routeur4.traiterLesMessages()
-
-routeur1.protocole_Rip.afficherTableRip()
-print()
-
-reseau1.supprimerRouteur(routeur1)
-
-for tour in range(10):
     for routeur in liste_Des_Routeurs:
         routeur.envoyerLesMessages()
-    
+        
     for routeur in liste_Des_Routeurs:
         routeur.traiterLesMessages()
 
-routeur1.protocole_Rip.afficherTableRip()
+#routeur1.protocole_Rip.afficherTableRip()
+print()
+routeur1.protocole_Ospf.afficheCheminsOspf()
+print()
+routeur2.protocole_Ospf.afficheCheminsOspf()
+print()
+routeur3.protocole_Ospf.afficheCheminsOspf()
+print()
+routeur4.protocole_Ospf.afficheCheminsOspf()
+print()
+
+print("On supprime le routeur")
+reseau1.supprimerRouteur(routeur1)
+
+for i in range(10):
+
+    for routeur in liste_Des_Routeurs:
+        routeur.envoyerLesMessages()
+        
+    for routeur in liste_Des_Routeurs:
+        routeur.traiterLesMessages()
+
+
+print("On affiche")
+#routeur1.protocole_Rip.afficherTableRip()
+routeur1.protocole_Ospf.afficheCheminsOspf()
+print()
+routeur2.protocole_Ospf.afficheCheminsOspf()
+print()
+routeur3.protocole_Ospf.afficheCheminsOspf()
+print()
+routeur4.protocole_Ospf.afficheCheminsOspf()

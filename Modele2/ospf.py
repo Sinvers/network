@@ -82,7 +82,7 @@ class OSPF :
         for indice_Ligne in range(taille_Mat):
             for indice_Colonne in range(indice_Ligne, taille_Mat):
                 message_Update = UpdateOspf(self.routeur_To_Index[indice_Ligne], self.routeur_To_Index[indice_Colonne], reseau, self.routeur, self.matrice[indice_Ligne][indice_Colonne])
-                self.routeur.ajoutMessageOspf(message_Update)
+                self.routeur.protocole_Ospf.ajouterMessageAEnvoyerOspf(message_Update)
     
     def trouverRouteurDansChemin(self, routeur):
         for chemin in self.liste_Chemin:
@@ -94,6 +94,8 @@ class OSPF :
     def traiterOspf(self):
         """On traite chacun des messages grace à leur méthode traiter..., on supprime le message, puis on regarde dans voisins si tous les voisins sont encore là, sinon on agit en conséquence. Puis on applique Dijkstra pour avoir liste_Chemin."""
         
+        self.liste_Chemin=[]                     #(On la remet à 0, car on va la remplir). C'est la liste qui contiendra les objets <CheminOspf>. //distances de indice_Routeur au routeur représenté par l'indice de la liste ainsi que le chemin à emprunter (sera sous forme de liste de couples (int list, int)).
+        
         while not len(self.messages_A_Traiter)==0:
             self.messages_A_Traiter[0].traiter(self.voisins, self.matrice, self.routeur_To_Index, self.routeur)
             self.messages_A_Traiter.pop(0)
@@ -101,26 +103,38 @@ class OSPF :
         indice = 0
         while indice < len(self.voisins):
             routeur, bool = self.voisins[indice]
-            if bool==False:                 #Si le routeur n'a pas envoyé de message hello.
+            if not bool:                 #Si le routeur n'a pas envoyé de message hello.
                 self.voisins.pop(indice)                    #On l'enlève des voisins.
                 
+                """
                 indice_In_Mat = self.routeur_To_Index.index(routeur)
                 for elt in self.matrice:
                     elt.pop(indice_In_Mat)                  #On l'enlève de matrice.
                 self.matrice.pop(indice_In_Mat)                 #On enlève sa colonne entièrement.
                 
                 self.routeur_To_Index.pop(indice_In_Mat)                    #On l'enlève de la liste des correspondances.
+                """
+                
+                #On met à jour la matrice vis à vis du lien qui a été rompu.
+                indice_Routeur_1 = self.routeur_To_Index.index(self.routeur)
+                indice_Routeur_2 = self.routeur_To_Index.index(routeur)
+                self.matrice[indice_Routeur_1][indice_Routeur_2] = infini
+                self.matrice[indice_Routeur_2][indice_Routeur_1] = infini
+                
+                for interface in self.routeur.liste_Interfaces:
+                    message_De_Deconnexion = UpdateOspf(self.routeur, routeur, interface.reseau, self.routeur, infini)
+                    self.routeur.protocole_Ospf.ajouterMessageAEnvoyerOspf(message_De_Deconnexion)
             
             indice += 1
         
         self.dijkstra()
         
-        for voisin in self.voisins:                    #On remet la vérification des routeurs à False.
-            routeur, bool = voisin
-            self.voisin = (routeur, False)
+        for indice in range(len(self.voisins)):                  #On remet la vérification des routeurs à False.
+            routeur, bool = self.voisins[indice]
+            self.voisins[indice] = (routeur, False)
     
     def dijkstra (self):
-        self.liste_Chemin=[]                     #(On la remet à 0, car on va la remplir). C'est la liste qui contiendra les objets <CheminOspf>. //distances de indice_Routeur au routeur représenté par l'indice de la liste ainsi que le chemin à emprunter (sera sous forme de liste de couples (int list, int)).
+        
         indice_Routeur_Self = self.routeur_To_Index.index(self.routeur)
         
         for indice in range(len(self.matrice)):                 #On initialise les chemins depuis self jusqu'aux routeurs concernés.
@@ -230,12 +244,35 @@ class HelloOspf(MessageOspf):
                 break
         if indice_Recherche == -1 :                 #Si on a découvert un nouveau routeur :
             tuple = (self.expediteur, True)
-            voisins.append(tuple)                 #on le rajoute dans la liste des voisins,
+            voisins.append(tuple)                 #On le rajoute dans la liste des voisins.
             
+            #Mise à jour de la matrice
+            n=len(matrice)
+            for i in range(n):                  #On rajoute un élément à toutes les lignes de la matrice (c'est le nouveau routeur).
+                matrice[i].append(infini)
+            new_Line = []
+            for i in range(n):
+                new_Line.append(infini)
+            new_Line.append(0)
+            matrice.append(new_Line)                    #On ajoute une ligne en plus à notre matrice, elle contient les cout du nouveau routeur vers les autres (le dernier élément est 0 car c'est du routeur vers lui-meme).
+            routeur_To_Index.append(self.expediteur)
+            
+            #On met à jour le coup de la nouvelle liaison dans la matrice.
+            indice_Self = routeur_To_Index.index(routeur_Qui_Recoit)
+            cout = dixPuissNeuf/self.reseau_Emission.bande_Passante
+            matrice[n][indice_Self] = cout
+            matrice[indice_Self][n] = cout
+            
+            """
             update_Perso = UpdateOspf(routeur_Qui_Recoit, self.expediteur, self.reseau_Emission, routeur_Qui_Recoit, dixPuissNeuf/self.reseau_Emission.bande_Passante)                    #on crée une update Ospf qu'on traite immédiatement et qui représente le lien entre ce nouveau routeur et le routeur qui reçoit,
             update_Perso.traiter(voisins, matrice, routeur_To_Index, routeur_Qui_Recoit)                    #on traite immédiatement (pour ne pas perdre un tour),
+            """
             
             routeur_Qui_Recoit.protocole_Ospf.envoyerMatriceSur(self.reseau_Emission)                   #on envoie entièrement notre matrice sur le réseau d'où arrive le hello : afin que le nouveau routeur soit au courant des routeurs dans le reseau.
+            
+            for interface in routeur_Qui_Recoit.liste_Interfaces:
+                    message_De_Connexion = UpdateOspf(self.expediteur, routeur_Qui_Recoit, interface.reseau, routeur_Qui_Recoit, cout)
+                    routeur_Qui_Recoit.protocole_Ospf.ajouterMessageAEnvoyerOspf(message_De_Connexion)
             
             if DEBUG:
                 print("On a découvert un nouveau routeur")
@@ -303,15 +340,21 @@ class UpdateOspf(MessageOspf):
         
         modification_Cout = False                   #A t on eu une modification de cout qui entrainerait un renvoie d'update ?
         
-        if ancien_Cout > self.cout:                 #Si le cout qui est dans la table est plus grand que le cout donné par l'update.
+        
+        if self.cout < ancien_Cout:                 #Si le cout qui est dans la table est plus grand que le cout donné par l'update.
+            matrice[indice_Routeur_1][indice_Routeur_2] = self.cout
+            matrice[indice_Routeur_2][indice_Routeur_1] = self.cout
+            modification_Cout = True
+        
+        elif self.cout == infini and not ancien_Cout == infini:
             matrice[indice_Routeur_1][indice_Routeur_2] = self.cout
             matrice[indice_Routeur_2][indice_Routeur_1] = self.cout
             modification_Cout = True
         
         if decouvert_Un_Routeur or modification_Cout:                   #Si il y a eu une modification ou un nouveau routeur, on doit renvoyer l'update (mise à jour avec le routeur émission correcte.
             for interface in routeur_Qui_Recoit.liste_Interfaces:
-                reseau_Ou_Envoyer = interface.reseau                    #Réseau sur lequel l'update new_Message_Update va etre envoyée.
-                new_Message_Update = UpdateOspf(routeur_1, routeur_2, reseau_Ou_Envoyer, routeur_Qui_Recoit, self.cout)                  #Nouvelle update puisque le réseau d'émission n'est pas forcément le meme que dans self.
-                routeur_Qui_Recoit.protocole_Ospf.ajouterMessageAEnvoyerOspf(new_Message_Update)
+                if not interface.reseau == self.reseau_Emission:                    #Si le réseau n'est pas celui d'où on a reçu l'update, on la diffuse dessus.
+                    new_Message_Update = UpdateOspf(routeur_1, routeur_2, interface.reseau, routeur_Qui_Recoit, self.cout)                  #Nouvelle update puisque le réseau d'émission n'est pas forcément le meme que dans self.
+                    routeur_Qui_Recoit.protocole_Ospf.ajouterMessageAEnvoyerOspf(new_Message_Update)
             if DEBUG:
                 print("renvoie du message update : ", self)
