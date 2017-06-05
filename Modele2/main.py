@@ -55,7 +55,7 @@ routeur1.protocole_Ospf.afficheCheminsOspf()
 #EXEMPLE 2
 
 reseau1 = Reseau('10.0.0.0', cent_M_Bits_Sec)
-reseau2 = Reseau('11.0.0.0', dix_M_Bits_Sec)
+reseau2 = Reseau('11.0.0.0', un_G_Bits_Sec)
 reseau3 = Reseau('12.0.0.0', cent_K_Bits_Sec)
 reseau4 = Reseau('13.0.0.0', dix_M_Bits_Sec)
 reseau5 = Reseau('14.0.0.0', un_M_Bits_Sec*5)
@@ -119,6 +119,7 @@ print()
 routeur4.protocole_Ospf.afficheCheminsOspf()
 
 routeur1.ajouterReseau(reseau1)
+print("On remet le routeur1")
 
 for i in range(11):
 
@@ -147,3 +148,74 @@ print()
 routeur3.protocole_Ospf.afficheCheminsOspf()
 print()
 routeur4.protocole_Ospf.afficheCheminsOspf()
+
+routeur5 = Routeur('routeur5', [reseau1, reseau4])
+
+liste_Des_Routeurs.append(routeur5)
+
+for i in range(5):
+
+    for routeur in liste_Des_Routeurs:
+        routeur.envoyerLesMessages()
+        
+    for routeur in liste_Des_Routeurs:
+        routeur.traiterLesMessages()
+
+
+print("Table RIP :")
+routeur1.protocole_Rip.afficherTableRip()
+print()
+routeur2.protocole_Rip.afficherTableRip()
+print()
+routeur3.protocole_Rip.afficherTableRip()
+print()
+routeur4.protocole_Rip.afficherTableRip()
+print()
+routeur5.protocole_Rip.afficherTableRip()
+print()
+
+print("Table OSPF :")
+routeur1.protocole_Ospf.afficheCheminsOspf()
+print()
+routeur2.protocole_Ospf.afficheCheminsOspf()
+print()
+routeur3.protocole_Ospf.afficheCheminsOspf()
+print()
+routeur4.protocole_Ospf.afficheCheminsOspf()
+print()
+routeur5.protocole_Ospf.afficheCheminsOspf()
+
+print("On enlève routeur2")
+reseau2.supprimerRouteur(routeur2)
+reseau4.supprimerRouteur(routeur2)
+
+for i in range(10):
+
+    for routeur in liste_Des_Routeurs:
+        routeur.envoyerLesMessages()
+        
+    for routeur in liste_Des_Routeurs:
+        routeur.traiterLesMessages()
+
+print("Table RIP :")
+routeur1.protocole_Rip.afficherTableRip()
+print()
+routeur2.protocole_Rip.afficherTableRip()
+print()
+routeur3.protocole_Rip.afficherTableRip()
+print()
+routeur4.protocole_Rip.afficherTableRip()
+print()
+routeur5.protocole_Rip.afficherTableRip()
+print()
+
+print("Table OSPF :")
+routeur1.protocole_Ospf.afficheCheminsOspf()
+print()
+routeur2.protocole_Ospf.afficheCheminsOspf()
+print()
+routeur3.protocole_Ospf.afficheCheminsOspf()
+print()
+routeur4.protocole_Ospf.afficheCheminsOspf()
+print()
+routeur5.protocole_Ospf.afficheCheminsOspf()

@@ -35,7 +35,7 @@ class OSPF :
     
     def afficheCheminsOspf(self):                   #Affiche l'ensemble des chemins du routeur sur lequel est activé cet objet OSPF.
         for chemin in self.liste_Chemin:
-            string = 'Chemin depuis ' + self.routeur.___nom___ + ' vers ' + chemin.destination.___nom___ + ' :' + chemin.donnerChemin()
+            string = 'Chemin depuis ' + self.routeur.___nom___ + ' vers ' + chemin.destination.___nom___ + ' en ' + str(chemin.cout) + ' :' + chemin.donnerChemin()
             print(string)
     
     def afficheMatrice(self):                   #Affiche la matrice et la correspondance indice/routeur.
@@ -274,7 +274,7 @@ class HelloOspf(MessageOspf):
             matrice[indice_Expediteur][indice_Self] = cout
             matrice[indice_Self][indice_Expediteur] = cout
             
-            routeur_Qui_Recoit.protocole_Ospf.envoyerMatriceSur(self.reseau_Emission)                   #on envoie entièrement notre matrice sur le réseau d'où arrive le hello : afin que le nouveau routeur soit au courant des routeurs dans le reseau.
+            routeur_Qui_Recoit.protocole_Ospf.envoyerMatriceSur(self.reseau_Emission)                   #on envoie toute notre matrice sur le réseau d'où arrive le hello : afin que le nouveau routeur soit au courant des routeurs dans le reseau.
             
             for interface in routeur_Qui_Recoit.liste_Interfaces:
                     message_De_Connexion = UpdateOspf(self.expediteur, routeur_Qui_Recoit, interface.reseau, routeur_Qui_Recoit, cout)
@@ -295,6 +295,7 @@ class UpdateOspf(MessageOspf):
         - cout : cout pour passer d'un routeur à l'autre (ceux du couple) qui est en fait 10^9 / bande passante : int
         - reseau_Emission : réseau d'où provient le message : <Reseau>
         - expediteur : routeur d'où provient le update : <Routeur>
+        - envoyer_Precis
     """
     
     def __init__(self, routeur_1, routeur_2, reseau_Emission, expediteur, cout):
@@ -307,60 +308,67 @@ class UpdateOspf(MessageOspf):
         return "cout = " + str(self.cout)
     
     def traiter(self, voisins, matrice, routeur_To_Index, routeur_Qui_Recoit):                  #traitement du message Update.
+        
         routeur_1, routeur_2 = self.coupleRouteur
-        decouvert_Un_Routeur = False                    #A t on découvert un nouveau routeur ?
+        if not routeur_1 == routeur_Qui_Recoit and not routeur_2 == routeur_Qui_Recoit:
         
-        try:
-            indice_Routeur_1 = routeur_To_Index.index(routeur_1)
-        except ValueError:                  #Cas où on découvre le routeur_1.
-            n=len(matrice)
-            for i in range(n):                  #On rajoute un élément à toutes les lignes de la matrice (c'est le nouveau routeur).
-                matrice[i].append(infini)
-            new_Line = []
-            for i in range(n):
-                new_Line.append(infini)
-            new_Line.append(0)
-            matrice.append(new_Line)                    #On ajoute une ligne en plus à notre matrice, elle contient les cout du nouveau routeur vers les autres (le dernier élément est 0 car c'est du routeur vers lui-meme).
-            routeur_To_Index.append(routeur_1)
-            indice_Routeur_1 = n
+            decouvert_Un_Routeur = False                    #A t on découvert un nouveau routeur ?
             
-            decouvert_Un_Routeur = True                 #On a découvert un routeur.
-        
-        try:
-            indice_Routeur_2 = routeur_To_Index.index(routeur_2)
-        except ValueError:                  #Cas où on découvre le routeur_2.
-            n=len(matrice)
-            for i in range(n):                  #On rajoute un élément à toutes les lignes de la matrice (c'est le nouveau routeur).
-                matrice[i].append(infini)
-            new_Line = []
-            for i in range(n):
-                new_Line.append(infini)
-            new_Line.append(0)
-            matrice.append(new_Line)                    #On ajoute une ligne en plus à notre matrice, elle contient les cout du nouveau routeur vers les autres (le dernier élément est 0 car c'est du routeur vers lui-meme).
-            routeur_To_Index.append(routeur_2)
-            indice_Routeur_2 = n
+            try:
+                indice_Routeur_1 = routeur_To_Index.index(routeur_1)
+            except ValueError:                  #Cas où on découvre le routeur_1.
+                n=len(matrice)
+                for i in range(n):                  #On rajoute un élément à toutes les lignes de la matrice (c'est le nouveau routeur).
+                    matrice[i].append(infini)
+                new_Line = []
+                for i in range(n):
+                    new_Line.append(infini)
+                new_Line.append(0)
+                matrice.append(new_Line)                    #On ajoute une ligne en plus à notre matrice, elle contient les cout du nouveau routeur vers les autres (le dernier élément est 0 car c'est du routeur vers lui-meme).
+                routeur_To_Index.append(routeur_1)
+                indice_Routeur_1 = n
+                
+                decouvert_Un_Routeur = True                 #On a découvert un routeur.
             
-            decouvert_Un_Routeur = True                 #On a découvert un routeur.
-        
-        ancien_Cout = matrice[indice_Routeur_1][indice_Routeur_2]
-        
-        modification_Cout = False                   #A t on eu une modification de cout qui entrainerait un renvoie d'update ?
-        
-        
-        if self.cout < ancien_Cout:                 #Si le cout qui est dans la table est plus grand que le cout donné par l'update.
-            matrice[indice_Routeur_1][indice_Routeur_2] = self.cout
-            matrice[indice_Routeur_2][indice_Routeur_1] = self.cout
-            modification_Cout = True
-        
-        elif self.cout == infini and not ancien_Cout == infini:
-            matrice[indice_Routeur_1][indice_Routeur_2] = self.cout
-            matrice[indice_Routeur_2][indice_Routeur_1] = self.cout
-            modification_Cout = True
-        
-        if decouvert_Un_Routeur or modification_Cout:                   #Si il y a eu une modification ou un nouveau routeur, on doit renvoyer l'update (mise à jour avec le routeur émission correcte.
-            for interface in routeur_Qui_Recoit.liste_Interfaces:
-                if not interface.reseau == self.reseau_Emission:                    #Si le réseau n'est pas celui d'où on a reçu l'update, on la diffuse dessus.
-                    new_Message_Update = UpdateOspf(routeur_1, routeur_2, interface.reseau, routeur_Qui_Recoit, self.cout)                  #Nouvelle update puisque le réseau d'émission n'est pas forcément le meme que dans self.
-                    routeur_Qui_Recoit.protocole_Ospf.ajouterMessageAEnvoyerOspf(new_Message_Update)
-            if DEBUG:
-                print("renvoie du message update : ", self)
+            try:
+                indice_Routeur_2 = routeur_To_Index.index(routeur_2)
+            except ValueError:                  #Cas où on découvre le routeur_2.
+                n=len(matrice)
+                for i in range(n):                  #On rajoute un élément à toutes les lignes de la matrice (c'est le nouveau routeur).
+                    matrice[i].append(infini)
+                new_Line = []
+                for i in range(n):
+                    new_Line.append(infini)
+                new_Line.append(0)
+                matrice.append(new_Line)                    #On ajoute une ligne en plus à notre matrice, elle contient les cout du nouveau routeur vers les autres (le dernier élément est 0 car c'est du routeur vers lui-meme).
+                routeur_To_Index.append(routeur_2)
+                indice_Routeur_2 = n
+                
+                decouvert_Un_Routeur = True                 #On a découvert un routeur.
+            
+            ancien_Cout = matrice[indice_Routeur_1][indice_Routeur_2]
+            
+            modification_Cout = False                   #A t on eu une modification de cout qui entrainerait un renvoie d'update ?
+            
+            
+            if self.cout < ancien_Cout:                 #Si le cout qui est dans la table est plus grand que le cout donné par l'update.
+                matrice[indice_Routeur_1][indice_Routeur_2] = self.cout
+                matrice[indice_Routeur_2][indice_Routeur_1] = self.cout
+                modification_Cout = True
+            
+            elif self.cout == infini and not ancien_Cout == infini:                 #Cas où il y a une déconnexion d'un routeur.
+                matrice[indice_Routeur_1][indice_Routeur_2] = self.cout
+                matrice[indice_Routeur_2][indice_Routeur_1] = self.cout
+                modification_Cout = True
+            
+            if decouvert_Un_Routeur or modification_Cout:                   #Si il y a eu une modification ou un nouveau routeur, on doit renvoyer l'update (mise à jour avec le routeur émission correcte.
+                for interface in routeur_Qui_Recoit.liste_Interfaces:
+                    if not interface.reseau == self.reseau_Emission:                    #Si le réseau n'est pas celui d'où on a reçu l'update, on la diffuse dessus.
+                        new_Message_Update = UpdateOspf(routeur_1, routeur_2, interface.reseau, routeur_Qui_Recoit, self.cout)                  #Nouvelle update puisque le réseau d'émission n'est pas forcément le meme que dans self.
+                        routeur_Qui_Recoit.protocole_Ospf.ajouterMessageAEnvoyerOspf(new_Message_Update)
+                if DEBUG:
+                    print("renvoie du message update : ", self)
+            
+        elif not self.cout == matrice[routeur_To_Index.index(routeur_Qui_Recoit)][routeur_To_Index.index(self.expediteur)]:                 #Si on reçoit un message nous concernant qui est à l'infini, alors que ce n'est pas le cas : on diffuse la correction.
+            message_Correction = UpdateOspf(routeur_Qui_Recoit, self.expediteur, self.reseau_Emission, routeur_Qui_Recoit, matrice[routeur_To_Index.index(routeur_Qui_Recoit)][routeur_To_Index.index(self.expediteur)])
+            routeur_Qui_Recoit.protocole_Ospf.ajouterMessageAEnvoyerOspf(message_Correction)

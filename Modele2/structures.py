@@ -214,6 +214,7 @@ class Routeur :
                     print("Le réseau a bien été supprimé au niveau du routeur")
                 
                 break
+            indice_Interface += 1
     
     def ajouterReseau(self, reseau):
         adresse_Routeur_New_Reseau = reseau.enregistrerRouteur(self)
