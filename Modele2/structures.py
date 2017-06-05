@@ -6,7 +6,7 @@ from rip import *
 #Mode 0 : active OSPF et RIP
 #Mode 1 : active OSPF uniquement
 #Mode 2 : active RIP uniquement.
-MODE = 1
+MODE = 0
 DEBUG = False                    #Active ou désactive le mode débug.
 
 
@@ -214,6 +214,14 @@ class Routeur :
                     print("Le réseau a bien été supprimé au niveau du routeur")
                 
                 break
+    
+    def ajouterReseau(self, reseau):
+        adresse_Routeur_New_Reseau = reseau.enregistrerRouteur(self)
+        new_Interface = InterfaceReseau(adresse_Routeur_New_Reseau, reseau)
+        self.liste_Interfaces.append(new_Interface)
+        
+        if DEBUG:
+            print('Le réseau a bien été ajouté')
 
 
 

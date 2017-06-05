@@ -237,36 +237,42 @@ class HelloOspf(MessageOspf):
     
     def traiter(self, voisins, matrice, routeur_To_Index, routeur_Qui_Recoit):
         indice_Recherche = -1                   #Représente l'indice du routeur si il est dans les voisins.
+        est_Dans_Matrice = False                    #Est-ce que le routeur qui nous envoie le hello est déjà dans notre matrice ?
         for indice in range(len(voisins)):
             routeur, bool = voisins[indice]
             if routeur == self.expediteur:
                 indice_Recherche = indice
+                est_Dans_Matrice = True
                 break
-        if indice_Recherche == -1 :                 #Si on a découvert un nouveau routeur :
+        
+        try:
+            indice_Expediteur = routeur_To_Index.index(self.expediteur)
+            est_Dans_Matrice = True
+        except ValueError:
+            est_Dans_Matrice = False
+        
+        if indice_Recherche == -1:                #Si on a découvert un nouveau routeur qui n'était pas dans notre liste de voisins :
             tuple = (self.expediteur, True)
             voisins.append(tuple)                 #On le rajoute dans la liste des voisins.
             
-            #Mise à jour de la matrice
-            n=len(matrice)
-            for i in range(n):                  #On rajoute un élément à toutes les lignes de la matrice (c'est le nouveau routeur).
-                matrice[i].append(infini)
-            new_Line = []
-            for i in range(n):
-                new_Line.append(infini)
-            new_Line.append(0)
-            matrice.append(new_Line)                    #On ajoute une ligne en plus à notre matrice, elle contient les cout du nouveau routeur vers les autres (le dernier élément est 0 car c'est du routeur vers lui-meme).
-            routeur_To_Index.append(self.expediteur)
+            if not est_Dans_Matrice:                    #Si il était pas dans la matrice :
+                #Mise à jour de la matrice
+                n=len(matrice)
+                for i in range(n):                  #On rajoute un élément à toutes les lignes de la matrice (c'est le nouveau routeur).
+                    matrice[i].append(infini)
+                new_Line = []
+                for i in range(n):
+                    new_Line.append(infini)
+                new_Line.append(0)
+                matrice.append(new_Line)                    #On ajoute une ligne en plus à notre matrice, elle contient les cout du nouveau routeur vers les autres (le dernier élément est 0 car c'est du routeur vers lui-meme).
+                routeur_To_Index.append(self.expediteur)
+                indice_Expediteur = n
             
             #On met à jour le coup de la nouvelle liaison dans la matrice.
             indice_Self = routeur_To_Index.index(routeur_Qui_Recoit)
             cout = dixPuissNeuf/self.reseau_Emission.bande_Passante
-            matrice[n][indice_Self] = cout
-            matrice[indice_Self][n] = cout
-            
-            """
-            update_Perso = UpdateOspf(routeur_Qui_Recoit, self.expediteur, self.reseau_Emission, routeur_Qui_Recoit, dixPuissNeuf/self.reseau_Emission.bande_Passante)                    #on crée une update Ospf qu'on traite immédiatement et qui représente le lien entre ce nouveau routeur et le routeur qui reçoit,
-            update_Perso.traiter(voisins, matrice, routeur_To_Index, routeur_Qui_Recoit)                    #on traite immédiatement (pour ne pas perdre un tour),
-            """
+            matrice[indice_Expediteur][indice_Self] = cout
+            matrice[indice_Self][indice_Expediteur] = cout
             
             routeur_Qui_Recoit.protocole_Ospf.envoyerMatriceSur(self.reseau_Emission)                   #on envoie entièrement notre matrice sur le réseau d'où arrive le hello : afin que le nouveau routeur soit au courant des routeurs dans le reseau.
             

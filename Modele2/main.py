@@ -99,8 +99,47 @@ for i in range(10):
         routeur.traiterLesMessages()
 
 
-print("On affiche")
-#routeur1.protocole_Rip.afficherTableRip()
+print("Table RIP :")
+routeur1.protocole_Rip.afficherTableRip()
+print()
+routeur2.protocole_Rip.afficherTableRip()
+print()
+routeur3.protocole_Rip.afficherTableRip()
+print()
+routeur4.protocole_Rip.afficherTableRip()
+print()
+
+print("Table OSPF :")
+routeur1.protocole_Ospf.afficheCheminsOspf()
+print()
+routeur2.protocole_Ospf.afficheCheminsOspf()
+print()
+routeur3.protocole_Ospf.afficheCheminsOspf()
+print()
+routeur4.protocole_Ospf.afficheCheminsOspf()
+
+routeur1.ajouterReseau(reseau1)
+
+for i in range(11):
+
+    for routeur in liste_Des_Routeurs:
+        routeur.envoyerLesMessages()
+        
+    for routeur in liste_Des_Routeurs:
+        routeur.traiterLesMessages()
+
+
+print("Table RIP :")
+routeur1.protocole_Rip.afficherTableRip()
+print()
+routeur2.protocole_Rip.afficherTableRip()
+print()
+routeur3.protocole_Rip.afficherTableRip()
+print()
+routeur4.protocole_Rip.afficherTableRip()
+print()
+
+print("Table OSPF :")
 routeur1.protocole_Ospf.afficheCheminsOspf()
 print()
 routeur2.protocole_Ospf.afficheCheminsOspf()
