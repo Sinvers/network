@@ -9,7 +9,56 @@ from rip import *
 MODE = 0
 DEBUG = False                    #Active ou désactive le mode débug.
 
+def afficher(liste_Des_Routeurs):                   #Affiche, suivant le mode activé la table RIP et/ou les chemins Ospf.
+    for routeur in liste_Des_Routeurs:
+        print()
+        print()
+        print(routeur.___nom___, ':')
+        if MODE == 0 or MODE == 1:
+            print("Table OSPF :")
+            routeur.protocole_Ospf.afficheCheminsOspf()
+        
+        if MODE == 0 or MODE == 2:
+            print("Table RIP :")
+            routeur.protocole_Rip.afficherTableRip()
 
+def estTermine(liste_Des_Routeurs):                 #Affiche si au moment de l'appel, la taille de la table rip comporte autant d'éléments que le nombre de routeurs; idem pour la taille de la liste des chemins ospf.
+    nb_Routeurs = len(liste_Des_Routeurs)
+    if MODE == 0 or MODE == 1:
+        termine = True
+        for routeur in liste_Des_Routeurs:
+            termine = termine and (nb_Routeurs == len(routeur.protocole_Ospf.liste_Chemin))
+        if termine:
+            print("Tous les routeurs sont à jour avec OSPF.")
+    
+    if MODE == 0 or MODE == 2:
+        termine = True
+        for routeur in liste_Des_Routeurs:
+            termine = termine and (len(routeur.protocole_Rip.table) == nb_Routeurs)
+        if termine:
+            print("Tous les routeurs sont à jour avec RIP")
+    
+def estTermineBoolOspf(liste_Des_Routeurs):                 #Pareil que la fonction précédente mais renvoie un booléen concernant Ospf.
+    nb_Routeurs = len(liste_Des_Routeurs)
+    if MODE == 0 or MODE == 1:
+        termine = True
+        for routeur in liste_Des_Routeurs:
+            termine = termine and (nb_Routeurs == len(routeur.protocole_Ospf.liste_Chemin))
+        if termine:
+            return True
+        else:
+            return False
+
+def estTermineBoolRip(liste_Des_Routeurs):                  #Pareil que la fonction précédente mais renvoie un booléen concernant Rip.
+    nb_Routeurs = len(liste_Des_Routeurs)
+    if MODE == 0 or MODE == 2:
+        termine = True
+        for routeur in liste_Des_Routeurs:
+            termine = termine and (nb_Routeurs == len(routeur.protocole_Rip.table))
+        if termine:
+            return True
+        else:
+            return False
 
 class Reseau :
     
@@ -82,7 +131,7 @@ class Reseau :
         except IndexError:
             print("L'indice du routeur n'est pas dans la liste des adresses réservées")
     
-    def broadcastOspf(self, message_Ospf):                    #message_Ospf est du type <MessageOspf>; envoie un message Ospf.
+    def broadcastOspf(self, message_Ospf):                    #Simulation d'un broadcast sur un réseau. message_Ospf est du type <MessageOspf>; envoie un message Ospf.
         """
         if DEBUG:
             print("Début d'un broadcast Ospf")
@@ -92,7 +141,7 @@ class Reseau :
             if not routeur == message_Ospf.expediteur:                  #On ne broadcast pas au routeur qui envoie le message.
                 routeur.ajoutMessageOspf(message_Ospf)
     
-    def broadcastRip(self, message_Rip):
+    def broadcastRip(self, message_Rip):                    #Simultation d'un broadcast sur un réseau.
         """
         if DEBUG:
             print("Début d'un broadcast Rip")

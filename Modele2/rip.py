@@ -1,7 +1,7 @@
 
 LIMIT = 15                  #Limite du nombre de saut pour RIP.
 
-AMELIORATION = False                 #Active (True) ou désactive (False) les améliorations.
+AMELIORATION = True                 #Active (True) ou désactive (False) les améliorations.
 
 DEBUG = False                    #Active ou désactive le mode débug.
 
