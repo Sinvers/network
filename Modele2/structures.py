@@ -7,6 +7,11 @@ from rip import *
 #Mode 1 : active OSPF uniquement
 #Mode 2 : active RIP uniquement.
 MODE = 0
+
+def switchMode(numero):
+    global MODE
+    MODE = numero
+
 DEBUG = False                    #Active ou désactive le mode débug.
 
 def afficher(liste_Des_Routeurs):                   #Affiche, suivant le mode activé la table RIP et/ou les chemins Ospf.
@@ -250,7 +255,7 @@ class Routeur :
             if DEBUG:
                 print("Traitement des messages Rip")
             
-            self.protocole_Rip.traiter()
+            self.protocole_Rip.traiterRip()
 
 
     def supprimerReseau(self, reseau):

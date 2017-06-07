@@ -2,6 +2,9 @@
 LIMIT = 15                  #Limite du nombre de saut pour RIP.
 
 AMELIORATION = True                 #Active (True) ou désactive (False) les améliorations.
+def switchAmelioration(bool):
+    global AMELIORATION
+    AMELIORATION = bool
 
 DEBUG = False                    #Active ou désactive le mode débug.
 
@@ -87,7 +90,7 @@ class RIP :
     
     
 
-    def traiter(self):
+    def traiterRip(self):
         """On traite les messages à traiter en appelant leur fonction traiter, et si certain des messages n'ont pas été traité, on les retire de la table."""
         
         for message in self.messages_A_Traiter:                 #On traite les messages à traiter.

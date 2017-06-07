@@ -307,3 +307,5 @@ for i in range(3):
     
     estTermine(liste_Des_Routeurs)
     afficher(liste_Des_Routeurs)
+
+
