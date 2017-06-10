@@ -6,7 +6,7 @@ from constantes import *
 avec_Amelioration = False                   #Activation de l'amélioration ?
 switchAmelioration(avec_Amelioration)
 
-numero_Mode = 2
+numero_Mode = 0
 switchMode(numero_Mode)
 
 reseau1 = Reseau('11.0.0.0',  cent_M_Bits_Sec)

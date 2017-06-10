@@ -295,7 +295,6 @@ class UpdateOspf(MessageOspf):
         - cout : cout pour passer d'un routeur à l'autre (ceux du couple) qui est en fait 10^9 / bande passante : int
         - reseau_Emission : réseau d'où provient le message : <Reseau>
         - expediteur : routeur d'où provient le update : <Routeur>
-        - envoyer_Precis
     """
     
     def __init__(self, routeur_1, routeur_2, reseau_Emission, expediteur, cout):
